@@ -1,0 +1,3 @@
+[submodule "upstream/containers"]
+	path = upstream/containers
+	url = git@github.com:bitnami/containers.git

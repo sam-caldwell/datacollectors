@@ -1,0 +1,6 @@
+--
+-- create trigger limit_jobs_status
+--     before insert or update
+--     on identify_inmates_job
+--     for each row
+-- execute procedure limit_job_status();
