@@ -5,6 +5,6 @@
 
 DB_NAME="$1"
 
-echo "${DB_NAME} is installing..."
+echo "sql/${DB_NAME} is installing..."
 create_database "${DB_NAME}" "toolkit"
 install_schema "${DB_NAME}"
