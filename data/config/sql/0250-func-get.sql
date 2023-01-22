@@ -7,7 +7,7 @@ create or replace function config.get(name varchar, required boolean) returns va
 $$
 begin
     if required then
-        if (select count(value) from config.data where key=name) <=0 then
+        if (select count(value) from config.data where key = name) <= 0 then
             raise exception 'missing required configuration %', name;
         end if;
     end if;

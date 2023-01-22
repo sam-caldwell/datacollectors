@@ -3,7 +3,7 @@
  * the trigger function for that table.  Where new.tags is
  * an array of
  */
-create or replace function log.validateTags() returns trigger as
+create or replace function job.validateTags() returns trigger as
 $$
 begin
     if not log.log.tagsValid(new.tags) then

@@ -13,6 +13,6 @@ $$
         );
         call toolkit.create_index('job.schedule', false, ARRAY ['name','status']);
         call toolkit.create_index('job.schedule', false, ARRAY ['frequency']);
-        -- call toolkit.create_trigger('job.schedule', 'insert', 'log.validateTags()');
+        call toolkit.create_trigger('job.schedule', 'insert', 'job.validateTags()');
     end
 $$ language plpgsql;
