@@ -9,3 +9,4 @@ $$
 --         add more default config records.
     end;
 $$ language plpgsql;
+
