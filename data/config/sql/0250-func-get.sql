@@ -1,5 +1,5 @@
 /*
- * config.get()
+ * config.get() -> varchar
  *      return the value for a given key.
  *      throw an exception if required key not found.
  */

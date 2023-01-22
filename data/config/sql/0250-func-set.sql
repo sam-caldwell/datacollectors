@@ -52,7 +52,6 @@ begin
         do update set value=textValue;
 end
 $$ language plpgsql;
-
 /*
  * config.set with decimal
  */
@@ -71,4 +70,66 @@ begin
     on conflict (key)
         do update set value=textValue;
 end
+$$ language plpgsql;
+/*
+ *  ------------------------------------------------------------------------------
+ *  Unit Tests
+ *  ------------------------------------------------------------------------------
+ */
+create or replace procedure config.test_set_required() as
+$$
+declare
+    ok boolean;
+begin
+    raise notice 'test: config.test_set_required() starting';
+    begin
+        select config.get('testC',true); --get non-existing required param.
+        ok=false;                        --expected error didn't happen
+    exception when others then
+        ok=true;                         --expected error encountered
+    end;
+    --evaluate test results and throw exception
+    if ok then
+        raise notice '...passed';
+    else
+        raise exception '...failed';
+    end if;
+    --clean-up after test.
+    drop procedure config.test_set_required();
+end
+$$ language plpgsql;
+/*
+ *
+ */
+create or replace procedure config.test_set_text() as
+$$
+begin
+    raise notice 'test: config.test_set_text() starting';
+    --create test data
+    insert into config.data(key, value) values ('test_set_text', 'valueA');
+    --test that config.get() works as expected.
+    if (select config.get('test_set_text',false)) <> 'valueA' then
+        raise exception 'get() test failed (A:false)';
+    end if;
+    if (select config.get('test_set_text',true)) <> 'valueA' then
+        raise exception 'get() test failed (A:true)';
+    end if;
+    --clean-up after test.
+    delete from config.data where key in ('test_set_text');
+    drop procedure config.test_set_text();
+end
+$$ language plpgsql;
+/*
+ *  ------------------------------------------------------------------------------
+ *  Running tests
+ *     All unit tests should be above this section
+ *  ------------------------------------------------------------------------------
+ */
+do
+$$
+    begin
+        raise notice 'test: config.get() starting';
+        call config.test_set_text();
+        call config.test_set_required();
+    end
 $$ language plpgsql;
