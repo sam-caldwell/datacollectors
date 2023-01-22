@@ -20,10 +20,7 @@ $$
         call toolkit.create_index('log.events', false, ARRAY ['tags']);
         call toolkit.create_index('log.events', false, ARRAY ['severity']);
 
-        call toolkit.create_trigger('log.events','insert','log.validateTags()');
+        call toolkit.create_trigger('log.events','insert','log.log.validateTags()');
 
-        create or replace trigger trigger_insert_log_tags before insert
-            on log.events
-        execute function log.validateTags();
     end
 $$ language plpgsql;
