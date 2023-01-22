@@ -49,7 +49,7 @@ $$ language plpgsql;
 create or replace procedure config.set(n varchar, v boolean) as
 $$
 declare
-    textValue text;
+    textValue text := format('%s', v);
 begin
     call config.set(n, textValue);
 end
@@ -107,7 +107,7 @@ $$ language plpgsql;
 create or replace procedure config.test_set_integer() as
 $$
 declare
-    n varchar   := 'config.test_set_integer';
+    n varchar := 'config.test_set_integer';
     v integer := 1048576;
 begin
     raise notice 'test: % starting', n;
@@ -128,7 +128,7 @@ $$ language plpgsql;
 create or replace procedure config.test_set_decimal() as
 $$
 declare
-    n varchar   := 'config.test_set_decimal';
+    n varchar := 'config.test_set_decimal';
     v decimal := 3.141529;
 begin
     raise notice 'test: % starting', n;
@@ -149,14 +149,14 @@ $$ language plpgsql;
 create or replace procedure config.test_set_boolean_true() as
 $$
 declare
-    n varchar   := 'config.test_set_boolean_true';
+    n varchar := 'config.test_set_boolean_true';
     v boolean := true;
 begin
     raise notice 'test: % starting', n;
     --use .set() method
     call config.set(n, v);
     --verify the table has the expected data.
-    if (select config.get(n, false))::boolean <> v then
+    if not ((select config.get(n, false))::boolean) then
         raise exception 'set() test failed on %',n;
     end if;
     --clean-up after test.
@@ -170,14 +170,14 @@ $$ language plpgsql;
 create or replace procedure config.test_set_boolean_false() as
 $$
 declare
-    n varchar   := 'config.test_set_boolean_false';
-    v boolean := true;
+    n varchar := 'config.test_set_boolean_false';
+    v boolean := false;
 begin
     raise notice 'test: % starting', n;
     --use .set() method
     call config.set(n, v);
 --verify the table has the expected data.
-    if (select config.get(n, false))::boolean <> v then
+    if (select config.get(n, false))::boolean then
         raise exception 'set() test failed on %',n;
     end if;
 --clean-up after test.
@@ -198,8 +198,8 @@ $$
         call config.test_set_text();
         call config.test_set_timestamp();
         call config.test_set_integer();
-        --         call config.test_set_decimal();
---         call config.test_set_boolean_true();
---         call config.test_set_boolean_false();
+        call config.test_set_decimal();
+        call config.test_set_boolean_true();
+        call config.test_set_boolean_false();
     end
 $$ language plpgsql;
