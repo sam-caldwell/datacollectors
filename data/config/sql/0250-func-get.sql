@@ -127,7 +127,48 @@ begin
     drop procedure config.test_get_decimal();
 end
 $$ language plpgsql;
-
+/*
+ *
+ */
+create or replace procedure config.test_get_boolean_true() as
+$$
+declare
+    v boolean = true;
+    expected varchar = format('%s',v);
+begin
+    raise notice 'test: config.test_get_boolean_true() starting';
+    --create test data
+    insert into config.data(key, value) values ('test_get_boolean_true', format('%s',v));
+    --test that config.get() works as expected.
+    if (select config.get('test_get_boolean_true',false))<>expected then
+        raise exception 'get() failed to set boolean value (true)';
+    end if;
+    --clean-up after test.
+    delete from config.data where key in ('test_get_boolean_true');
+    drop procedure config.test_get_boolean_true();
+end
+$$ language plpgsql;
+/*
+ *
+ */
+create or replace procedure config.test_get_boolean_false() as
+$$
+declare
+    v boolean = false;
+    expected varchar = format('%s',v);
+begin
+    raise notice 'test: config.test_get_boolean_false() starting';
+    --create test data
+    insert into config.data(key, value) values ('test_get_boolean_false', format('%s',v));
+    --test that config.get() works as expected.
+    if (select config.get('test_get_boolean_false',false))<>expected then
+        raise exception 'get() failed to set boolean value (false)';
+    end if;
+    --clean-up after test.
+    delete from config.data where key in ('test_get_boolean_false');
+    drop procedure config.test_get_boolean_false();
+end
+$$ language plpgsql;
 /*
  *  ------------------------------------------------------------------------------
  *  Running tests
@@ -143,5 +184,7 @@ $$
         call config.test_get_timestamp();
         call config.test_get_integer();
         call config.test_get_decimal();
+        call config.test_get_boolean_true();
+        call config.test_get_boolean_false();
     end
 $$ language plpgsql;
