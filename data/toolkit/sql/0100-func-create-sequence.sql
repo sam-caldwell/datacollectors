@@ -18,7 +18,7 @@ create or replace procedure toolkit.test_create_sequence() as
 $$
 declare
 --     result text:='';
-    seq_name    varchar := 'sequence';
+    seq_name         varchar := 'test_sequence';
     seq_start        integer := 3;
     seq_increment    integer := 13;
     actual_start     integer;
