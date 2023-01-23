@@ -1,3 +1,6 @@
+/*
+ * create_enum() will create an enumerated data type.
+ */
 create or replace procedure toolkit.create_enum(name text, elements text[]) as
 $$
 declare

@@ -1,3 +1,8 @@
+/*
+ * create_index()
+ *    for a given table (tbl) this function will create an index on the specified columns (cols)
+ *    and if the uniqueness flag (u) is enabled, this will create a unique index.
+ */
 create or replace procedure toolkit.create_index(tbl varchar, u boolean, cols varchar[]) as
 $$
 declare
