@@ -71,10 +71,17 @@ begin
     -- create a duplicate and expect an exception
     begin
         insert into log.tags(tag) values ('tag:a');
-            raise exception 'duplicates should have been blocked';
+        raise exception 'duplicates should have been blocked';
     exception
         when others then
             raise notice 'duplicates blocked as expected';
+    end;
+    begin
+        update log.tags set tag='tag:bad' where tag = 'tag:a';
+        raise exception  'update should have been blocked';
+    exception
+        when others then
+            raise notice 'updates blocked as expected';
     end;
     drop procedure log.test_block_log_tags_updates;
 end
