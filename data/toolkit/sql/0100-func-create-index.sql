@@ -29,10 +29,10 @@ begin
         foo text not null
     );
     call toolkit.create_index(tableName, false, columns);
---     result=(select indexdef from pg_catalog.pg_indexes where indexname=eName);
---     if result <> 'CREATE INDEX test_index ON public.test_table USING btree (foo)' then
---         raise exception 'index not structured as expected';
---     end if;
+    result=(select indexdef from pg_catalog.pg_indexes where indexname=index_name);
+    if result <> 'CREATE INDEX ndx_test_table_foo ON public.test_table USING btree (foo)' then
+        raise exception 'index not structured as expected: ''%''', result;
+    end if;
     --clean-up
     execute format('drop index %s', index_name);
     drop table test_table;
