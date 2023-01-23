@@ -33,18 +33,12 @@ begin
     expected_ids = (select array_agg(id) from log.tags where tag in ('tag:a', 'tag:b', 'tag:c', 'tag:d'));
     expected_tags = (select array_agg(tag) from log.tags where tag in ('tag:a', 'tag:b', 'tag:c', 'tag:d'));
     actual_ids = log.getTagSetId(expected_tags);
-    if actual_ids[0] <> expected_ids[0] then
-        raise exception 'tag[0] mismatch';
-    end if;
-    if actual_ids[1] <> expected_ids[1] then
-        raise exception 'tag[1] mismatch';
-    end if;
-    if actual_ids[2] <> expected_ids[2] then
-        raise exception 'tag[2] mismatch';
-    end if;
-    if actual_ids[3] <> expected_ids[3] then
-        raise exception 'tag[3] mismatch';
-    end if;
+
+    call toolkit.assert((actual_ids[0] = expected_ids[0]), 'tag[0] mismatch');
+    call toolkit.assert((actual_ids[1] = expected_ids[1]), 'tag[1] mismatch');
+    call toolkit.assert((actual_ids[2] = expected_ids[2]), 'tag[2] mismatch');
+    call toolkit.assert((actual_ids[3] = expected_ids[3]), 'tag[3] mismatch');
+
     --clean-up
     delete from log.tags where tag in ('tag:a', 'tag:b', 'tag:c', 'tag:d');
     drop procedure log.test_get_tag_set_id;
