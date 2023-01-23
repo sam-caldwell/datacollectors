@@ -6,6 +6,9 @@
 create or replace function toolkit.exception_block_updates() RETURNS trigger AS
 $$
 begin
-    raise exception 'update operation is blocked';
+    raise exception using
+        errcode = 'UPDATE_BLOCKED',
+        message = 'update operation is blocked',
+        hint = 'update is blocked on table';
 end
 $$ language plpgsql;
