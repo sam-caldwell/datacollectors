@@ -172,14 +172,14 @@ $$
 declare
     n varchar := 'config.test_set_boolean_false';
     v boolean := false;
+    f boolean;
 begin
     raise notice 'test: % starting', n;
     --use .set() method
     call config.set(n, v);
 --verify the table has the expected data.
-    if (select config.get(n, false))::boolean then
-        raise exception 'set() test failed on %',n;
-    end if;
+    f=(select config.get(n, false))::boolean;
+    call toolkit.assert(not(f),'set() test failed');
 --clean-up after test.
     delete from config.data where key in (n);
     drop procedure config.test_set_boolean_false();

@@ -52,9 +52,7 @@ begin
                          and (udt_name = 'timestamp')
                      )
              ));
-    if c < 3 then
-        raise exception 'missing or misconfigured tags table/columns: %', c;
-    end if;
+    call toolkit.assert((c=3),'missing or misconfigured tags table/columns');
     drop procedure log.test_log_tags_table;
 end
 $$ language plpgsql;

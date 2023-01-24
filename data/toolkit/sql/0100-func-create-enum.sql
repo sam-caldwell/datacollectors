@@ -40,7 +40,7 @@ begin
     end if;
     --clean-up
     execute format('drop type %s', eName);
-    drop procedure toolkit.test_create_enum;
+--     drop procedure toolkit.test_create_enum;
 end
 $$ language plpgsql;
 /*
