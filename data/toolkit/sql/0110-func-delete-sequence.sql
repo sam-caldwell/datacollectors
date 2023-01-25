@@ -43,5 +43,6 @@ $$
     begin
         raise notice 'test: toolkit.delete_sequence() starting';
         call toolkit.test_delete_sequence();
+        rollback;
     end
 $$ language plpgsql;

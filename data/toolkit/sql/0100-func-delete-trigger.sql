@@ -51,7 +51,6 @@ begin
         raise exception 'delete_trigger() did not delete the trigger';
     end if;
     --clean-up
-    drop table if exists test_table;
     drop procedure toolkit.test_delete_trigger;
 end
 $$ language plpgsql;

@@ -30,7 +30,6 @@ begin
     if c > 0 then
         raise exception 'index failed to delete. count: %', c;
     end if;
-    execute format('drop table %s', tbl_name);
     drop procedure toolkit.test_delete_index;
 end
 $$ language plpgsql;
@@ -45,5 +44,6 @@ $$
     begin
         raise notice 'test: delete_index() starting';
         call toolkit.test_delete_index();
+        rollback;
     end
 $$ language plpgsql;
