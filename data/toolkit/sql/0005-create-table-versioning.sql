@@ -7,11 +7,12 @@
  */
 create table toolkit.versioning
 (
-    version      serial        not null primary key,
+    file_hash    char(64)      not null primary key,
     file_name    varchar(1024) not null unique,
-    description  text          not null,
+    description  text          not null default '',
     install_date timestamp     not null default now()
         constraint file_name_pattern_check check (file_name ~ '^[0-9]{4}-[a-zA-Z0-9\-_]*\.sql$')
+        constraint file_hash_pattern_check check (file_hash ~ '^[A-F0-9a-f]{64}$')
 );
 /*
  * ensure the table can only be WORM

@@ -4,6 +4,6 @@
 DO
 $$
     begin
-        call toolkit.ensureFutureTimestamp('versioning', 'install_date');
+        call toolkit.ensureFutureTimestamp('toolkit.versioning', 'install_date');
     end
 $$ language plpgsql;
