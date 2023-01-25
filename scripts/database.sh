@@ -69,7 +69,7 @@ SQL_EOF
         exit 1
     }
     rm "${SQL_FILE}"
-    sleep .25;
+#    sleep .25;
 }
 
 install_schema(){
