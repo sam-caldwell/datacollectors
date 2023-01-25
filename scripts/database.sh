@@ -43,9 +43,10 @@ create_database(){
 }
 
 register_version(){
-  DB_NAME="$1"
-  FILE_NAME="$2"
-  FILE_HASH="$3"
+  SCHEMA_NAME="$1"
+  DB_NAME="$2"
+  FILE_NAME="$3"
+  FILE_HASH="$4"
   echo "register_version() FILE_NAME:${FILE_NAME} HASH:${FILE_HASH}"
   # shellcheck disable=SC2028
   sleep 1
@@ -54,7 +55,7 @@ register_version(){
 DO
 \$\$
 begin
-  call toolkit.register_version('${FILE_NAME}','${FILE_HASH}','install schema');
+  call toolkit.register_version('${FILE_NAME}','${SCHEMA_NAME}','${DB_NAME}','${FILE_HASH}','install schema');
 end
 \$\$ language plpgsql;
 SQL_EOF
@@ -72,6 +73,7 @@ SQL_EOF
 }
 
 install_schema(){
+  SCHEMA_NAME="$1"
   DB_NAME="$1"
   (
     print_blue "preparing to install $1 schema (currently in $(pwd))"
@@ -88,7 +90,7 @@ install_schema(){
         exit 1
       }
       FILE_HASH=$(shasum -a 256 sql/${file} | awk '{print $1}')
-      register_version "${DB_NAME}" "${file}" "${FILE_HASH}"
+      register_version "${SCHEMA_NAME}" "${DB_NAME}" "${file}" "${FILE_HASH}"
     done
   ) || exit 1
   print_green "schema installed for $1"
