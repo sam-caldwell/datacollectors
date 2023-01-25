@@ -28,7 +28,6 @@ declare
     expected_tags varchar[];
     actual_ids    integer[];
 begin
-    truncate log.tags;
     insert into log.tags (tag) values ('tag:a'),('tag:b'),('tag:c'),('tag:d');
     expected_ids = (select array_agg(id) from log.tags where tag in ('tag:a', 'tag:b', 'tag:c', 'tag:d'));
     expected_tags = (select array_agg(tag) from log.tags where tag in ('tag:a', 'tag:b', 'tag:c', 'tag:d'));
@@ -40,9 +39,7 @@ begin
     call toolkit.assert((actual_ids[3] = expected_ids[3]), 'tag[3] mismatch');
 
     --clean-up
-    delete from log.tags where tag in ('tag:a', 'tag:b', 'tag:c', 'tag:d');
     drop procedure log.test_get_tag_set_id;
-    truncate log.tags;
 end
 $$ language plpgsql;
 /*
@@ -56,5 +53,6 @@ $$
     begin
         raise notice 'test: log.test_get_tag_set_id() starting';
         call log.test_get_tag_set_id();
+        rollback;
     end
 $$ language plpgsql;

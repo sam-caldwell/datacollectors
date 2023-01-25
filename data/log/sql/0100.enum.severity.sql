@@ -35,5 +35,6 @@ $$
     begin
         raise notice 'test: log.test_enum_severity() starting';
         call log.test_enum_severity();
+        rollback;
     end
 $$ language plpgsql;

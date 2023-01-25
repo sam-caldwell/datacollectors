@@ -97,6 +97,8 @@ $$
     begin
         raise notice 'test: log.key table';
         call log.test_log_keys_table();
+        rollback;
         call log.test_block_log_keys_updates();
+        rollback;
     end
 $$ language plpgsql;

@@ -95,6 +95,8 @@ $$
     begin
         raise notice 'test: log.tags table';
         call log.test_log_tags_table();
+        rollback;
         call log.test_block_log_tags_updates();
+        rollback;
     end
 $$ language plpgsql;

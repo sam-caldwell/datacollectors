@@ -62,7 +62,7 @@ SQL_EOF
                                --host "${DB_HOST}" \
                                --port 5432 \
                                --username="${DB_USER}" \
-                               --dbname="${DB_NAME}" < ${SQL_FILE} || {
+                               --dbname="toolkit" < ${SQL_FILE} || {
         print_red "failed to register ${file}"
         rm "${SQL_FILE}"
         exit 1

@@ -60,6 +60,8 @@ do
 $$
     begin
         call log.test_tags_are_valid();
+        rollback;
         call log.test_tags_are_not_valid();
+        rollback;
     end
 $$ language plpgsql;
