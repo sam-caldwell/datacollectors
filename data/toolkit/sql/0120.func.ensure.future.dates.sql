@@ -19,7 +19,6 @@ declare
 begin
     execute sql;
     call toolkit.create_trigger(table_name, 'insert', 'toolkit.exceptionFutureTimestamps');
-    perform pg_sleep(1);
 end
 $$ language plpgsql;
 /*

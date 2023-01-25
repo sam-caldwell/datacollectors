@@ -49,7 +49,6 @@ register_version(){
   FILE_HASH="$4"
   echo "register_version() FILE_NAME:${FILE_NAME} HASH:${FILE_HASH}"
   # shellcheck disable=SC2028
-  sleep 1
   SQL_FILE="/tmp/$(date +%s)"
   cat >> "${SQL_FILE}" << SQL_EOF
 DO
@@ -68,8 +67,7 @@ SQL_EOF
         rm "${SQL_FILE}"
         exit 1
     }
-    rm "${SQL_FILE}"
-#    sleep .25;
+    rm "${SQL_FILE}" &
 }
 
 install_schema(){

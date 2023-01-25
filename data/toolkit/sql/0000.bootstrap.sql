@@ -64,7 +64,6 @@ declare
 begin
     insert into toolkit.versioning (file_name, schema_name, database_name, file_hash, description)
     values (fn, sn, db, fh, _description);
-    perform pg_sleep(0.1);
 end
 $$ language plpgsql;
 /*
