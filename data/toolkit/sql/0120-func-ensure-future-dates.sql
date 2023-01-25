@@ -60,7 +60,6 @@ begin
     drop procedure toolkit.test2();
 end
 $$ language plpgsql;
-
 /*
  *  ------------------------------------------------------------------------------
  *  Running tests
