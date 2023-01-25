@@ -8,7 +8,7 @@ declare
     action_func varchar := replace(replace(action, '(', ''), ')', '');
     trigger_name varchar := format('trigger_%s_%s_%s', replace(table_name, '.', '_'), operation,
                                   replace(action_func, '.', '_'));
-    sql         varchar := format('create or replace trigger %s before %s on %s execute function %s()',
+    sql         varchar := format('create or replace trigger %s before %s on %s for each row execute function %s()',
                                   trigger_name, operation, table_name, action_func);
 begin
     raise notice 'creating trigger %s', trigger_name;
