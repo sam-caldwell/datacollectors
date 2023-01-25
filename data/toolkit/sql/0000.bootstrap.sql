@@ -22,7 +22,7 @@ create table toolkit.versioning
     database_name varchar(255)  not null,
     description   text          not null default '',
     install_date  timestamp     not null default now(),
-    constraint file_name_pattern_check check (file_name ~ '^[0-9]{4}-[a-zA-Z0-9\-_\.]*\.sql$'),
+    constraint file_name_pattern_check check (file_name ~ '^[0-9]{4}(\.[a-zA-Z0-9]+)+\.sql$'),
     constraint file_hash_length check (length(file_hash) = 64),
     constraint file_hash_pattern_check check (file_hash ~ '^[0-9a-f]{64}')
 );
@@ -76,7 +76,7 @@ create or replace procedure toolkit.test1() as
 $$
 begin
     call toolkit.register_version(
-            '0001-create-test1.sql', 'test_schema', 'test_db',
+            '0001.create.test1.sql', 'test_schema', 'test_db',
             '986c1b76ae8dd69207134eae8e3640017fab5150f4d164e7def2481a7871ad1b',
             'test');
     drop procedure toolkit.test1;
@@ -86,11 +86,11 @@ create or replace procedure toolkit.test2() as
 $$
 begin
     call toolkit.register_version(
-            '0001-create-schema.sql', 'test_schema', 'test_db',
+            '0001.create.schema.sql', 'test_schema', 'test_db',
             '986c1b76ae8dd69207134eae8e3640017fab5150f4d164e7def2481a7871ad1b',
             'test');
     call toolkit.register_version(
-            '0005-create-table-versioning.sql', 'test_schema', 'test_db',
+            '0005.create.table.versioning.sql', 'test_schema', 'test_db',
             'e422cc96979b088dc88238c15bff1572cfbeb953f0e6e1f447c5be76a5dd1a0c',
             'this is a descriptor');
     drop procedure toolkit.test2;
@@ -100,17 +100,17 @@ create or replace procedure toolkit.test3() as
 $$
 begin
     call toolkit.register_version(
-            '0001-create-schema.sql', 'test_schema', 'test_db',
+            '0001.create.schema.sql', 'test_schema', 'test_db',
             '986c1b76ae8dd69207134eae8e3640017fab5150f4d164e7def2481a7871ad1b',
             'test');
     call toolkit.register_version(
-            '0005-create-table-versioning.sql', 'test_schema', 'test_db',
+            '0005.create.table.versioning.sql', 'test_schema', 'test_db',
             'e422cc96979b088dc88238c15bff1572cfbeb953f0e6e1f447c5be76a5dd1a0c',
             'this is a descriptor');
     begin
         --duplicate hash
         call toolkit.register_version(
-                '0001-create-schema2.sql', 'test_schema', 'test_db',
+                '0001.create.schema2.sql', 'test_schema', 'test_db',
                 '986c1b76ae8dd69207134eae8e3640017fab5150f4d164e7def2481a7871ad1b',
                 'test');
         raise exception 'test3: failed';
@@ -125,17 +125,17 @@ create or replace procedure toolkit.test4() as
 $$
 begin
     call toolkit.register_version(
-            '0001-create-schema.sql', 'test_schema', 'test_db',
+            '0001.create.schema.sql', 'test_schema', 'test_db',
             '986c1b76ae8dd69207134eae8e3640017fab5150f4d164e7def2481a7871ad1b',
             'test');
     call toolkit.register_version(
-            '0005-create-table-versioning.sql', 'test_schema', 'test_db',
+            '0005.create.table.versioning.sql', 'test_schema', 'test_db',
             'e422cc96979b088dc88238c15bff1572cfbeb953f0e6e1f447c5be76a5dd1a0c',
             'this is a descriptor');
     begin
         --duplicate name
         call toolkit.register_version(
-                '0001-create-schema.sql', 'test_schema', 'test_db',
+                '0001.create.schema.sql', 'test_schema', 'test_db',
                 '986c1b76ae8dd69207134eae8e3640017fab5150f4d164e7de42481a7871ad1b',
                 'test');
         raise exception 'test3: failed';
