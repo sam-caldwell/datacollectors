@@ -41,15 +41,10 @@ $$ language plpgsql;
 create or replace procedure toolkit.test2() as
 $$
 declare
-    t0 timestamp;
-    t1 timestamp;
-    t2 timestamp;
+    t0 timestamp:= now();
+    t1 timestamp:= t0 - interval '1:25';
+    t2 timestamp:= t1 - interval '1:25';
 begin
-    t0 := now();
-    perform pg_sleep(1);
-    t1 := t0 - interval '1:25';
-    perform pg_sleep(1);
-    t2 := t1 - interval '1:25';
     create table test_table
     (
         t timestamp not null default now()
