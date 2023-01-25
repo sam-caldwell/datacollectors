@@ -1,5 +1,6 @@
 /*
- *
+ * toolkit.ensureFutureTimestamp()
+ *     creates a trigger to enforce that inserted timestamps are in the future.
  */
 create or replace procedure toolkit.ensureFutureTimestamp(table_name varchar, column_name varchar) as
 $$
@@ -7,7 +8,7 @@ declare
     sql varchar := E'create or replace function toolkit.exceptionFutureTimestamps() returns trigger as\n' ||
                    E'$F$\n' ||
                    E'\tbegin\n' ||
-                   format(E'\t\tif NEW.%s > (SELECT max(%s) FROM %s) then\n', column_name, column_name, table_name) ||
+                   format(E'\t\tif NEW.%s >= (SELECT max(%s) FROM %s) then\n', column_name, column_name, table_name) ||
                    format(E'\t\t\traise exception ''timestamp (%s) cannot be backdated'';\n', column_name) ||
                    E'\t\tend if;\n' ||
                    E'return new;\n' ||
@@ -28,7 +29,7 @@ $$
 begin
     create table test_table
     (
-        t   timestamp not null default now()
+        t timestamp not null default now()
     );
     call toolkit.ensureFutureTimestamp('test_table', 't');
     insert into test_table (t) values (now()), (now()), (now()), (now());
