@@ -22,7 +22,7 @@ $$ language plpgsql;
 /*
  * test the delete_trigger() function works without errors.
  */
-create or replace procedure toolkit.test_create_trigger() as
+create or replace procedure toolkit.test_delete_trigger() as
 $$
 declare
     c           integer := 0;
@@ -52,7 +52,7 @@ begin
     end if;
     --clean-up
     drop table if exists test_table;
-    drop procedure toolkit.test_create_trigger;
+    drop procedure toolkit.test_delete_trigger;
 end
 $$ language plpgsql;
 /*
@@ -65,7 +65,7 @@ do
 $$
     begin
         raise notice 'test: test_create_trigger() starting';
-        call toolkit.test_create_trigger();
+        call toolkit.test_delete_trigger();
         rollback;
     end
 $$ language plpgsql;

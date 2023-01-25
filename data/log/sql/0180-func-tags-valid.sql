@@ -31,7 +31,6 @@ $$
 declare
 
 begin
-    -- todo: finish test.
     --insert into log.tags(tag) values("test_tag:a","test_tag:b","test_tag:c","test_tag:d");
     drop procedure log.test_tags_are_valid();
 end
