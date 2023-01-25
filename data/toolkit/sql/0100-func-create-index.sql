@@ -37,8 +37,6 @@ begin
         raise exception 'index not structured as expected: ''%''', result;
     end if;
     --clean-up
-    execute format('drop index %s', index_name);
-    execute format('drop table %s', tbl_name);
     drop procedure toolkit.test_create_index;
 end
 $$ language plpgsql;
@@ -53,5 +51,6 @@ $$
     begin
         raise notice 'test: toolkit.create_index() starting';
         call toolkit.test_create_index();
+        rollback;
     end
 $$ language plpgsql;

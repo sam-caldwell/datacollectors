@@ -51,9 +51,6 @@ begin
         raise exception 'create_trigger() did not create the trigger';
     end if;
     --clean-up
-    execute format('drop trigger %s on %s;', tgr_name, tbl_name);
-    execute format('drop function %s;', action_func);
-    drop table if exists test_table;
     drop procedure toolkit.test_create_trigger;
 end
 $$ language plpgsql;
@@ -73,7 +70,6 @@ begin
         raise exception 'error: enum values do not match specification: %', v1;
     end if;
     --clean-up
-    execute format('drop type %s', eName);
     drop procedure toolkit.test_create_enum_values;
 end;
 $$ language plpgsql;
@@ -88,5 +84,6 @@ $$
     begin
         raise notice 'test: test_create_trigger() starting';
         call toolkit.test_create_trigger();
+        rollback;
     end
 $$ language plpgsql;

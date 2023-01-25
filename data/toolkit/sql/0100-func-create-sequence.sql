@@ -39,7 +39,6 @@ begin
         raise exception 'seq_increment mismatch on sequence';
     end if;
     -- clean-up
-    execute format('drop sequence %s', seq_name);
     drop procedure toolkit.test_create_sequence;
 end
 $$ language plpgsql;
@@ -54,5 +53,6 @@ $$
     begin
         raise notice 'test: toolkit.create_enum() starting';
         call toolkit.test_create_sequence();
+        rollback;
     end
 $$ language plpgsql;

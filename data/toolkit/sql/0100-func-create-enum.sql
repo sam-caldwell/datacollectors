@@ -39,7 +39,6 @@ begin
         raise exception 'create_enum() did not create the enum type';
     end if;
     --clean-up
-    execute format('drop type %s', eName);
 --     drop procedure toolkit.test_create_enum;
 end
 $$ language plpgsql;
@@ -59,7 +58,6 @@ begin
         raise exception 'error: enum values do not match specification: %', v1;
     end if;
     --clean-up
-    execute format('drop type %s', eName);
     drop procedure toolkit.test_create_enum_values;
 end;
 $$ language plpgsql;
@@ -74,6 +72,8 @@ $$
     begin
         raise notice 'test: toolkit.create_enum() starting';
         call toolkit.test_create_enum();
+        rollback;
         call toolkit.test_create_enum_values();
+        rollback;
     end
 $$ language plpgsql;
