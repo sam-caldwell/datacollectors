@@ -42,7 +42,37 @@ create_database(){
   print_green "database creation done for ${1}"
 }
 
+register_version(){
+  DB_NAME="$1"
+  FILE_NAME="$2"
+  FILE_HASH="$3"
+  echo "register_version() FILE_NAME:${FILE_NAME} HASH:${FILE_HASH}"
+  # shellcheck disable=SC2028
+  sleep 1
+  SQL_FILE="/tmp/$(date +%s)"
+  cat >> "${SQL_FILE}" << SQL_EOF
+DO
+\$\$
+begin
+  call toolkit.register_version('${FILE_NAME}','${FILE_HASH}','install schema');
+end
+\$\$ language plpgsql;
+SQL_EOF
+    PGPASSWORD=${DB_PASS} psql -v ON_ERROR_STOP=1 \
+                               --host "${DB_HOST}" \
+                               --port 5432 \
+                               --username="${DB_USER}" \
+                               --dbname="${DB_NAME}" < ${SQL_FILE} || {
+        print_red "failed to register ${file}"
+        rm "${SQL_FILE}"
+        exit 1
+    }
+    rm "${SQL_FILE}"
+    sleep .25;
+}
+
 install_schema(){
+  DB_NAME="$1"
   (
     print_blue "preparing to install $1 schema (currently in $(pwd))"
     for raw in $(find ./sql/ -type f -name "*.sql"|sort); do
@@ -52,11 +82,13 @@ install_schema(){
                               --host "${DB_HOST}" \
                               --port 5432 \
                               --username="${DB_USER}" \
-                              --dbname="$1" \
+                              --dbname="${DB_NAME}" \
                               --file="sql/${file}" || {
         print_red "failed to install ${file}"
         exit 1
       }
+      FILE_HASH=$(shasum -a 256 sql/${file} | awk '{print $1}')
+      register_version "${DB_NAME}" "${file}" "${FILE_HASH}"
     done
   ) || exit 1
   print_green "schema installed for $1"
