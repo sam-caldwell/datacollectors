@@ -8,7 +8,7 @@ declare
     action_func  varchar := replace(replace(action, '(', ''), ')', '');
     trigger_name varchar := format('trigger_%s_%s_%s', replace(table_name, '.', '_'), operation,
                                    replace(action_func, '.', '_'));
-    sql          varchar := format('drop trigger %s on %s;', trigger_name, table_name);
+    sql          varchar := format('drop trigger if exists %s on %s;', trigger_name, table_name);
 begin
     raise notice 'deleting trigger %s', trigger_name;
     execute sql;

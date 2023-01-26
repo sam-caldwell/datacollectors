@@ -52,7 +52,7 @@ begin
                          and (udt_name = 'timestamp')
                      )
              ));
-    call toolkit.assert((c=3),'missing or misconfigured tags table/columns');
+    call toolkit.assert((c = 3), 'missing or misconfigured tags table/columns');
     drop procedure log.test_log_tags_table;
 end
 $$ language plpgsql;
@@ -76,7 +76,7 @@ begin
     end;
     begin
         update log.tags set tag='tag:bad' where tag = 'tag:a';
-        raise exception  'update should have been blocked';
+        raise exception 'update should have been blocked';
     exception
         when others then
             raise notice 'updates blocked as expected';

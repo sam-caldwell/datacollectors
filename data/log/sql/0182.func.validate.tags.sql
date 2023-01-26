@@ -6,7 +6,7 @@
 create or replace function log.validateTags() returns trigger as
 $$
 begin
-    if not log.log.tagsValid(new.tags) then
+    if not log.tagsValid(new.tags) then
         raise exception 'invalid tag';
     end if;
     return new;
