@@ -60,6 +60,8 @@ $$
     begin
         raise notice 'test: config.get() starting';
         call config.test_default_log_severity();
+        rollback;
         call config.test_db_config_initialized();
+        rollback;
     end
 $$ language plpgsql;

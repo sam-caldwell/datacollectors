@@ -14,6 +14,8 @@ $$
             created timestamp             default now(),
             updated timestamp    null     default null
         );
+        call toolkit.ensureFutureTimestamp('toolkit.versioning', 'created');
+        call toolkit.ensureFutureTimestamp('toolkit.versioning', 'updated');
         call toolkit.create_index('config.data', false, ARRAY ['key']);
         call toolkit.create_index('config.data', false, ARRAY ['created']);
         call toolkit.create_index('config.data', false, ARRAY ['updated']);

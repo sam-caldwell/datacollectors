@@ -180,11 +180,18 @@ $$
     begin
         raise notice 'test: config.get() starting';
         call config.test_get_required();
+        rollback;
         call config.test_get_text();
+        rollback;
         call config.test_get_timestamp();
+        rollback;
         call config.test_get_integer();
+        rollback;
         call config.test_get_decimal();
+        rollback;
         call config.test_get_boolean_true();
+        rollback;
         call config.test_get_boolean_false();
+        rollback;
     end
 $$ language plpgsql;
