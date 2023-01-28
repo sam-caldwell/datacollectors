@@ -1,0 +1,40 @@
+-- /*
+--  * test the create_sequence() function works without errors.
+--  */
+-- create or replace procedure toolkit.test_create_sequence() as
+-- $$
+-- declare
+-- --     result text:='';
+--     seq_name         varchar := 'test_sequence';
+--     seq_start        integer := 3;
+--     seq_increment    integer := 13;
+--     actual_start     integer;
+--     actual_increment integer;
+-- begin
+--     call toolkit.create_sequence(seq_name, seq_start, seq_increment);
+--     actual_start := (select start_value from information_schema.sequences where sequence_name = seq_name);
+--     actual_increment := (select increment from information_schema.sequences where sequence_name = seq_name);
+--     if actual_start <> seq_start then
+--         raise exception 'seq_start mismatch on sequence';
+--     end if;
+--     if actual_increment <> seq_increment then
+--         raise exception 'seq_increment mismatch on sequence';
+--     end if;
+--     -- clean-up
+--     drop procedure toolkit.test_create_sequence;
+-- end
+-- $$ language plpgsql;
+-- /*
+--  *  ------------------------------------------------------------------------------
+--  *  Running tests
+--  *     All unit tests should be above this section
+--  *  ------------------------------------------------------------------------------
+--  */
+-- do
+-- $$
+--     begin
+--         raise notice 'test: toolkit.create_enum() starting';
+--         call toolkit.test_create_sequence();
+--         rollback;
+--     end
+-- $$ language plpgsql;
