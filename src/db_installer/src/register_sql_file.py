@@ -21,7 +21,7 @@ def register_sql_file(conn: connection, db_name: str, file_name: str, descriptio
     print(f"registering file: {db_name}->{file_name}")
     file_hash = calc_file_hash(file_name)
     file_parts = file_name.split("/")
-    file_name = join(file_parts[-3], file_parts[-2], file_parts[-1])
+    file_name = join(file_parts[-4], file_parts[-3], file_parts[-2], file_parts[-1])
 
     with conn.cursor() as c:
         c.execute(f"call version.register('{file_name}','{db_name}','{file_hash}','{description}');")
