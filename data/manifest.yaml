@@ -78,6 +78,13 @@ postgres:
                 procedure will raise a notice rather than a fatal error, similar to an "if not exists" clause.
 
             - enabled: true
+              file: data/postgresql/core/toolkit/functions/callCheckFunc.sql
+              description: |
+                Provides toolkit.callCheckFunc() which will create the function call string based on the standard
+                call pattern.  The returned function call string can be passed to toolkit.addCheckConstraint() as
+                the check function which will be invoked each for a given check.
+
+            - enabled: true
               file: data/postgresql/core/toolkit/procedures/create_sequence.sql
               test: data/postgresql/core/toolkit/tests/create_sequence.sql
               description: Provides toolkit.create_sequence() to create sequence types
@@ -186,6 +193,23 @@ postgres:
               todo: |
                 1. Implement expiring records
                 2. Implement encrypted records
+
+            - enabled: true
+              file: data/postgresql/core/config/tables/expiration.sql
+              description: |
+                This table identifies any expiration rules for key-value records in config.data.
+                If a record exists in config.expiration for a key in config.data, then it will be
+                expired some time approximately on or after the expiration
+
+            - enabled: true
+              file: data/postgresql/core/config/procedures/set.expiration.sql
+              description: |
+                config.setExpiration() will insert a row into config.expiration.
+
+            - enabled: true
+              file: data/postgresql/core/config/procedures/delete.expiration.sql
+              description: |
+                config.deleteExpiration() will delete a row from config.expiration.
 
             - enabled: true
               file: data/postgresql/core/config/functions/get.sql
