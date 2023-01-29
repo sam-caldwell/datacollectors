@@ -96,27 +96,54 @@ postgres:
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/delete_trigger.sql
+              description: toolkit.delete_trigger() will lookup and delete any matching trigger.
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/delete_type.sql
+              description: |
+                toolkit.delete_type() will delete an enum or other user-defined type
+                if it exists.
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/block_inserts.sql
+              description: |
+                toolkit.block_inserts() will create a trigger on a given table to 
+                block any INSERT operation.
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/disable_updates.sql
+              description: |
+                toolkit.disable_updates() will create a trigger on a given table to
+                block any UPDATE operation.  This results in the table being write-
+                once, read-many (WORM)
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/enable_updates.sql
+              description: |
+                toolkit.enable_updates() will delete any existing trigger created by
+                toolkit.disable_updates() and allow UPDATE operations to succeed.
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/ensureFutureTimestamp.sql
+              description: |
+                toolkit.ensureFutureTimestamp() will create a trigger that will evaluate
+                a given timestamp column on a given table to ensure that any timestamp
+                INSERTed into the table is a future timestamp.
+              todo: |
+                We need to revisit this procedure to create a simpler implementation.
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/allow_inserts.sql
+              description: |
+                toolkit.allow_inserts() will delete any trigger created by block_inserts()
+                and thereby allow INSERT operations on the given table.
 
             - enabled: true
               file: data/postgresql/core/toolkit/tasks/alter.table.version.data.sql
+              description: |
+                This task will alter the version.data table to require all timestamps to be
+                in the future.  This should ensure the version.data table is a valid source
+                of truth for system history.
 
         - name: config
           description: |
@@ -129,20 +156,37 @@ postgres:
           sources:
             - enabled: true
               file: data/postgresql/core/config/0240.table.config.data.sql
+              description: |
+                This table contains our key-value configuration data.
+              todo: |
+                1. Implement expiring records
+                2. Implement encrypted records
+
             - enabled: true
               file: data/postgresql/core/config/0250.func.get.sql
+              description: config.get() will return the cleartext value associated with a given key.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
+
             - enabled: true
               file: data/postgresql/core/config/0260.func.set.text.sql
+
             - enabled: true
               file: data/postgresql/core/config/0270.func.set.boolean.sql
+
             - enabled: true
               file: data/postgresql/core/config/0280.func.set.decimal.sql
+
             - enabled: true
               file: data/postgresql/core/config/0290.func.set.integer.sql
+
             - enabled: true
               file: data/postgresql/core/config/0300.func.set.timestamp.sql
+
             - enabled: true
               file: data/postgresql/core/config/9999.initial.configuration.sql
+
 
         - name: log
           description: |
