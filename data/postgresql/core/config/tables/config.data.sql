@@ -6,12 +6,19 @@ create table config.data
     created timestamp             default now(),
     updated timestamp    null     default null
 );
+
 call toolkit.disable_updates('config.data');
+
 call toolkit.addCheckConstraint('config.data','future_update',
                                 'toolkit.isUpdatedAfterCreated(''config.data'', ''updated'', created)');
+
 call toolkit.addCheckConstraint('config.data','future_created',
                                 'toolkit.isTimestampFuture(created, ''config.data'', ''created'')');
+
 call toolkit.create_index('config.data', false, ARRAY ['key']);
+
 call toolkit.create_index('config.data', false, ARRAY ['class']);
+
 call toolkit.create_index('config.data', false, ARRAY ['created']);
+
 call toolkit.create_index('config.data', false, ARRAY ['updated']);
