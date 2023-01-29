@@ -77,7 +77,6 @@ postgres:
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/create_enum.sql
-              test: data/postgresql/core/toolkit/tests/create_enum.sql
               description: |
                 Provides toolkit.create_enum() to create enumerated types using an array of varchar input. This
                 guarantees the enum is created consistently and if the enumerated type already exists, the 
@@ -85,7 +84,6 @@ postgres:
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/addCheckConstraint.sql
-              test: data/postgresql/core/toolkit/tests/addCheckConstraint.sql
               description: |
                 Given a table name, a logical check name and a string describing a boolean function call,
                 this procedure creates a check constraint on the given table which will execute the check
@@ -106,7 +104,6 @@ postgres:
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/create_sequence.sql
-              test: data/postgresql/core/toolkit/tests/create_sequence.sql
               description: Provides toolkit.create_sequence() to create sequence types
 
             - enabled: true
@@ -122,7 +119,6 @@ postgres:
 
             - enabled: true
               file: data/postgresql/core/toolkit/functions/isTimestampFuture.sql
-              test: data/postgresql/core/toolkit/tests/isTimestampFuture.sql
               description: |
                 Given a timestamp (thisTime), table name and column name (where the column is a timestamp),
                 this function (isTimestampFuture() will return true if thisTime is later than all times in the
@@ -130,7 +126,6 @@ postgres:
 
             - enabled: true
               file: data/postgresql/core/toolkit/functions/isUpdatedAfterCreated.sql
-              test: data/postgresql/core/toolkit/tests/isUpdatedAfterCreated.sql
               description: |
                 Given a table name and the name of its updated timestamp column along with a created timestamp
                 value, return true if the created timestamp is greater than or equal to the latestTime timestamp.
@@ -269,7 +264,6 @@ postgres:
               file: data/postgresql/core/config/tasks/initial.configuration.sql
               description: |
                 This task will create the default configuration values.
-
 
         - name: log
           description: |

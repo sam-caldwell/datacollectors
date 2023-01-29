@@ -22,8 +22,8 @@ call toolkit.addCheckConstraint('config.expiration',
 /*
  * Our expiration must always be at some point after the created timestamp.
  */
-call toolkit.addCheckConstraint('config.data', 'updated_after_creation',
+call toolkit.addCheckConstraint('config.expiration', 'updated_after_creation',
                                 toolkit.callCheckFunc('toolkit.isUpdatedAfterCreated',
-                                                      'config.data',
-                                                      'expiration',
-                                                      'created'));
+                                                      'created',
+                                                      'config.expiration',
+                                                      'expiration'));
