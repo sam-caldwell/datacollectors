@@ -396,28 +396,44 @@ postgres:
             schema includes the data and tooling needed to create, plan, schedule and execute
             datacollector jobs over time.  The goal of this schema is to evolve to provide a
             self-managing and sustainable data collector job manager with reliability in mind.
+            
+            In the datacollectors a "job" is a workflow definition consisting of one or more
+            tasks, where a "task" is the smallest atomic unit of work representing a definition
+            of input parameters, expected outputs and a container-based unit of automation called
+            a "runner."
+
           enabled: true
           sources:
             - enabled: true
-              file: data/postgresql/core/job/0000.schema.sql
+              file: data/postgresql/core/job/tasks/status.sql
+              description: |
+                The job status enumerated type defines where in the workflow the job is.
+
+
             - enabled: true
-              file: data/postgresql/core/job/0100.enum.job.status.sql
-            - enabled: true
-              file: data/postgresql/core/job/0150.func.validate.tags.sql
+              file: data/postgresql/core/job/validateTags.sql
+
             - enabled: true
               file: data/postgresql/core/job/0200.table.job.schedule.sql
+
             - enabled: true
               file: data/postgresql/core/job/0210.table.job.history.sql
+
             - enabled: true
               file: data/postgresql/core/job/0220.table.job.queue.sql
+
             - enabled: true
               file: data/postgresql/core/job/0220.table.job.runners.sql
+
             - enabled: true
               file: data/postgresql/core/job/0230.table.job.tasks.sql
+
             - enabled: false
               file: data/postgresql/core/job/0300.func.job.queue.pop.sql
+
             - enabled: false
               file: data/postgresql/core/job/0300.func.job.queue.push.sql
+
 
 #    - name: financial
 #      description: |

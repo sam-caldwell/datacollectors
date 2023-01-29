@@ -6,8 +6,11 @@
 create or replace function job.validateTags() returns trigger as
 $$
 begin
-    if not log.log.tagsValid(new.tags) then
-        raise exception 'invalid tag';
+    if not log.tagsValid(new.tags) then
+        raise exception using
+            errcode = 'INVALID_TAG',
+            message = 'invalid tag',
+            hint = 'The given tag was not previously registered with the tag table';
     end if;
     return new;
 end
