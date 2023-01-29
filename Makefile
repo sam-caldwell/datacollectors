@@ -30,6 +30,7 @@ build/db/client: build/db/installer
 
 stop/db/server:
 	@docker kill $(POSTGRES_CONTAINER) &> /dev/null || true
+	docker $(POSTGRES_CONTAINER) &>/dev/null || true
 	@echo "db server killed"
 
 start/db/server: stop/db/server
@@ -45,7 +46,7 @@ start/db/server: stop/db/server
 			   $(POSTGRES_SERVER_IMAGE)
 
 deploy/db/schema: stop/db/server clean/db start/db/server build/db/client
-	@./bin/db_installer $(DB_HOST) $(DB_PORT) $(DB_NAME) $(DB_USER) $(DB_PASS) $(SRC_SCHEMA_PATH)
+#	@./bin/db_installer $(DB_HOST) $(DB_PORT) $(DB_NAME) $(DB_USER) $(DB_PASS) $(SRC_SCHEMA_PATH)
 #	docker run -it \
 #			   --volume $(CUR_DIR)/data/:/opt/ \
 #			   -e DB_HOST=$(DB_HOST) \
@@ -54,7 +55,5 @@ deploy/db/schema: stop/db/server clean/db start/db/server build/db/client
 #			   $(POSTGRES_CLIENT_IMAGE)
 #
 
-clean/db:
-	docker kill postgres &>/dev/null || true
-	docker rm postgres &>/dev/null || true
+clean/db: stop/db/server start/db/server
 	sleep 2
