@@ -7,7 +7,10 @@ create or replace procedure toolkit.assert(condition boolean, exception_string v
 $$
     begin
         if not condition then
-            raise exception '%', exception_string;
+            raise exception using
+                errcode = 'ASSERTION_ERROR',
+                message = format('%', exception_string),
+                hint = 'An assert() call was made and the condition was false';
         end if;
     end
 $$ language plpgsql;

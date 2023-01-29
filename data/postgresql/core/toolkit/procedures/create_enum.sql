@@ -11,9 +11,7 @@ begin
     if (select 1 from pg_type where typname = name) then
         raise notice 'type: %...exists', name;
     else
-        raise notice 'type: create %', name;
         execute sql;
-        raise notice 'type: % created', name;
     end if;
 end
 $$ language plpgsql;

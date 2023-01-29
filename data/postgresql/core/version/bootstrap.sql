@@ -2,24 +2,18 @@
  * bootstrap so we can version this file in the core database.
  */
 /*
- * The sql/versions project aims to create common easy-to-use
- * sql functions/procedures and other objects which can
- * be used by other databases which use versions db as a template.
- */
-create schema if not exists version;
-/*
  * version.block_updates()
  *      block updates via trigger on the core database.
  */
-create or replace function version.block_updates() RETURNS trigger AS
-$$
-begin
-    raise exception using
-        errcode = 'UPDATE_BLOCKED',
-        message = 'the versioning table is write-once-read-many',
-        hint = 'update is blocked on versioning table.';
-end
-$$ language plpgsql;
+    create or replace function version.block_updates() RETURNS trigger AS
+            $$
+                begin
+                    raise exception using
+                        errcode = 'UPDATE_BLOCKED',
+                        message = 'the versioning table is write-once-read-many',
+                        hint = 'update is blocked on versioning table.';
+                end
+                    $$ language plpgsql;
 /*
  *
  */
@@ -43,7 +37,7 @@ create table if not exists version.filenames
     id      serial       not null primary key,
     name    varchar(255) not null unique,
     created timestamp    not null default now()
-        constraint file_name_pattern_check check (name ~ '^([a-zA-Z0-9()\.\-\_\+]+\/)+[0-9]{4}(\.[a-zA-Z0-9]+)+\.sql$')
+        constraint file_name_pattern_check check (name ~ '^[a-zA-Z0-9()\.\-\_\+\/]+\.sql$')
 );
 create or replace trigger trigger_versions_filenames_readonly
     before update

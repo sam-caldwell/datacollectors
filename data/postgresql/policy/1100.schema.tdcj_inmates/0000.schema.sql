@@ -1,1 +1,1 @@
-create schema if not exists policy_tdcj_inmates;
+create schema if not exists tdcj_inmates;
