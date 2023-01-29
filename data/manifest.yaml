@@ -61,6 +61,11 @@ postgres:
               description: Load support for UUIDs.
 
             - enabled: true
+              file: data/postgresql/core/toolkit/functions/hash.sql
+              description: |
+                Given a string (s), toolkit.hash(s) will return the hex-encoded sha256 hash of s.
+
+            - enabled: true
               file: data/postgresql/core/toolkit/procedures/assert.sql
               description: Provides an assertion mechanism
 
@@ -87,6 +92,31 @@ postgres:
               file: data/postgresql/core/toolkit/procedures/delete_index.sql
               description: |
                 Provides toolkit.delete_index() to delete an existing index safely if it exists.
+
+            - enabled: true
+              file: data/postgresql/core/toolkit/functions/isTimestampFuture.sql
+              test: data/postgresql/core/toolkit/tests/isTimestampFuture.sql
+              description: |
+                Given a timestamp (thisTime), table name and column name (where the column is a timestamp),
+                this function (isTimestampFuture() will return true if thisTime is later than all times in the
+                given table or false otherwise.
+
+            - enabled: true
+              file: data/postgresql/core/toolkit/functions/isUpdatedAfterCreated.sql
+              test: data/postgresql/core/toolkit/tests/isUpdatedAfterCreated.sql
+              description: |
+                Given a table name and the name of its updated timestamp column along with a created timestamp
+                value, return true if the created timestamp is greater than or equal to the latestTime timestamp.
+                Otherwise, return false.
+
+            - enabled: true
+              file: data/postgresql/core/toolkit/procedures/addCheckConstraint.sql
+              test: data/postgresql/core/toolkit/tests/addCheckConstraint.sql
+              description: |
+                Given a table name, a logical check name and a string describing a boolean function call,
+                this procedure creates a check constraint on the given table which will execute the check
+                function as described to ensure that the table meets the expectations defined in the 
+                check function.
 
             - enabled: true
               file: data/postgresql/core/toolkit/procedures/create_trigger.sql
@@ -124,26 +154,10 @@ postgres:
                 toolkit.disable_updates() and allow UPDATE operations to succeed.
 
             - enabled: true
-              file: data/postgresql/core/toolkit/procedures/ensureFutureTimestamp.sql
-              description: |
-                toolkit.ensureFutureTimestamp() will create a trigger that will evaluate
-                a given timestamp column on a given table to ensure that any timestamp
-                INSERTed into the table is a future timestamp.
-              todo: |
-                We need to revisit this procedure to create a simpler implementation.
-
-            - enabled: true
               file: data/postgresql/core/toolkit/procedures/allow_inserts.sql
               description: |
                 toolkit.allow_inserts() will delete any trigger created by block_inserts()
                 and thereby allow INSERT operations on the given table.
-
-            - enabled: true
-              file: data/postgresql/core/toolkit/tasks/alter.table.version.data.sql
-              description: |
-                This task will alter the version.data table to require all timestamps to be
-                in the future.  This should ensure the version.data table is a valid source
-                of truth for system history.
 
         - name: config
           description: |
@@ -154,8 +168,19 @@ postgres:
             encryption keys are kept in the caller and the
           enabled: true
           sources:
+
             - enabled: true
-              file: data/postgresql/core/config/0240.table.config.data.sql
+              file: data/postgresql/core/config/tasks/config.class.sql
+              description: |
+                config.class is an enumerated data type used to segment config.data rows into
+                their storage class (e.g. clear text, encrypted or expiring).  This value will
+                determine which config.* methods can be used to get/set values.
+              todo: |
+                1. implement encryption
+                2. implement expiring rows
+
+            - enabled: true
+              file: data/postgresql/core/config/tables/config.data.sql
               description: |
                 This table contains our key-value configuration data.
               todo: |
@@ -163,29 +188,55 @@ postgres:
                 2. Implement encrypted records
 
             - enabled: true
-              file: data/postgresql/core/config/0250.func.get.sql
+              file: data/postgresql/core/config/functions/get.sql
               description: config.get() will return the cleartext value associated with a given key.
               todo: |
                 1. for encrypted values, get() should throw exception.
                 2. for non-existent values, get() should throw an exception
 
             - enabled: true
-              file: data/postgresql/core/config/0260.func.set.text.sql
+              file: data/postgresql/core/config/functions/set.text.sql
+              description: config.set(<key>, <value>) will set a cleartext value for a given key.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
 
             - enabled: true
-              file: data/postgresql/core/config/0270.func.set.boolean.sql
+              file: data/postgresql/core/config/functions/set.boolean.sql
+              description: |
+                config.set(<key>, <bool>) will set a cleartext value for a given key with a boolean value.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
 
             - enabled: true
-              file: data/postgresql/core/config/0280.func.set.decimal.sql
+              file: data/postgresql/core/config/functions/set.decimal.sql
+              description: |
+                config.set(<key>, <decimal>) will set a cleartext value for a given key with a decimal value.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
 
             - enabled: true
-              file: data/postgresql/core/config/0290.func.set.integer.sql
+              file: data/postgresql/core/config/functions/set.integer.sql
+              description: |
+                config.set(<key>, <integer>) will set a cleartext value for a given key with an integer value.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
 
             - enabled: true
-              file: data/postgresql/core/config/0300.func.set.timestamp.sql
+              file: data/postgresql/core/config/functions/set.timestamp.sql
+              description: |
+                config.set(<key>, <timestamp>) will set a cleartext value for a given key with a timestamp value.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
 
             - enabled: true
-              file: data/postgresql/core/config/9999.initial.configuration.sql
+              file: data/postgresql/core/config/tasks/initial.configuration.sql
+              description: |
+                This task will create the default configuration values.
 
 
         - name: log
