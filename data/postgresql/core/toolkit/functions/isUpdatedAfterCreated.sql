@@ -1,11 +1,8 @@
-create or replace function toolkit.isUpdatedAfterCreated(tbl varchar,
-                                                         updated_col varchar,
-                                                         created_time timestamp) returns boolean as
+create or replace function toolkit.isUpdatedAfterCreated(created_time timestamp,
+                                                         tbl varchar,
+                                                         updated_col varchar) returns boolean as
 $$
-declare
-    latestTime timestamp;
 begin
-    execute (format('select max(%s) from %s;', updated_col, tbl)) into latestTime;
-    return created_time >= latestTime;
+    return created_time >= toolkit.getLatestTime(tbl, updated_col);
 end
 $$ language plpgsql;

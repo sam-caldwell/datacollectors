@@ -26,9 +26,9 @@ call toolkit.addCheckConstraint('config.data', 'future_created',
  */
 call toolkit.addCheckConstraint('config.data', 'updated_after_creation',
                                 toolkit.callCheckFunc('toolkit.isUpdatedAfterCreated',
+                                                      'created',
                                                       'config.data',
-                                                      'updated',
-                                                      'created'));
+                                                      'updated'));
 /*
  * index on our storage class.
  */
