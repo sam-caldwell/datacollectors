@@ -408,31 +408,85 @@ postgres:
               file: data/postgresql/core/job/tasks/status.sql
               description: |
                 The job status enumerated type defines where in the workflow the job is.
-
-
-            - enabled: true
-              file: data/postgresql/core/job/validateTags.sql
-
-            - enabled: true
-              file: data/postgresql/core/job/0200.table.job.schedule.sql
+                We see the simple choices here: a job is either not_started or it is in_progress as
+                valid workflow states.  The only other option is "disabled." to prevent evaluation
+                by the job scheduler.
 
             - enabled: true
-              file: data/postgresql/core/job/0210.table.job.history.sql
+              file: data/postgresql/core/job/functions/validateTags.sql
+              description: |
+                job.validateTags() is a trigger function which will validate that the tags
+                within the associated job tables are valid tags in the log.tags table.
 
             - enabled: true
-              file: data/postgresql/core/job/0220.table.job.queue.sql
+              file: data/postgresql/core/job/tables/job.schedule.sql
+              description: |
+                The job.schedule table defines a "job" the top level object of the workflow.  Here, we give the job
+                a logical name, map it to an Id (integer) we can reference elsewhere, and define the job status,
+                execution frequency (interval) and tags.  We allow a job to be updated, and we guarantee that our 
+                timestamps are proper (e.g. not backdated) using constraints.
+                
+                Notes:
+                  0. Status is an enumerated type
+                  1. Frequency is an integer (4 bytes) rather than interval (16 bytes) to conserve space since no
+                     job should execute less than once a year.  Almost all jobs will execute much more frequently.
+                  2. tags are mapped to the log.tags table to keep log.events and job.* consistent.  We do this 
+                     consistency in the database because we are not lazy fucking web developers, and this is not 
+                     joomla.
+              todo: |
+                1. add timestamp validation to ensure created timestamps move into the future always.
+                2. add timestamp validation to ensure updated timestamps are always after the latest created timestamp.
+                (this is not Enron, integrity matters).
 
             - enabled: true
-              file: data/postgresql/core/job/0220.table.job.runners.sql
+              file: data/postgresql/core/job/tables/job.history.sql
+              description: |
+                The job.history table is used to track job executions.  This is not the same use-case as log.events.
+                This table is used to track execution history and execution time for purposes of scheduling future
+                job executions.  For example, given the frequency field in the job.schedule table, we can look at the 
+                history table to find last execution and calculate from that time the elapsed time to determine which
+                jobs need to be queued to jobs.queue.
 
             - enabled: true
-              file: data/postgresql/core/job/0230.table.job.tasks.sql
+              file: data/postgresql/core/job/tables/job.runners.sql
+              description: |
+                The job.runners table defines the available automation packages (called "runners") in the system.
+                Each record in this table represents a container with specified inputs and outputs.  Each task 
+                executes a single runner
+
+            - enabled: true
+              file: data/postgresql/core/job/functions/job.idInTasks.sql
+              description: |
+                The job.idInTasks() function will return a boolean answer.  Given a jobId input (integer) the
+                function returns true if the input id is in the job.tasks table.  This is used by a constraint
+                check in the job.queue table.
+
+            - enabled: true
+              file: data/postgresql/core/job/tables/job.tasks.sql
+              description: |
+                The tasks table depends on the job.schedule and job.runners tables to define the tasks for a given job
+                and map the task to a given runner which will be executed under the task context.
+
+            - enabled: true
+              file: data/postgresql/core/job/tables/job.queue.sql
+              description: |
+                The queue table is where we store a list of jobs that are ready for execution.  Once we push a job
+                to the job.queue table, we mark it "in_progress."  If the job execution process fails, the job can
+                be restarted from its current state.
 
             - enabled: false
-              file: data/postgresql/core/job/0300.func.job.queue.pop.sql
+              file: data/postgresql/core/job/functions/0300.func.job.queue.pop.sql
+              description: |
+                job.pop() will allow a caller to pop the next record from the job.queue table.
+              todo: |
+                write this function, dummy...
 
             - enabled: false
-              file: data/postgresql/core/job/0300.func.job.queue.push.sql
+              file: data/postgresql/core/job/functions/.func.job.queue.push.sql
+              description: |
+                job.push()
+              todo: |
+                write this function, dummy...
 
 
 #    - name: financial
