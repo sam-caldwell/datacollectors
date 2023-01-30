@@ -7,7 +7,10 @@ create table job.schedule
     tags      integer[]    not null,
     created   timestamp    not null default now(),
     updated   timestamp    null     default null,
-    constraint frequencyPosInteger check (frequency >= 0)
+    constraint frequencyPosInteger check (frequency >= 0),
+    constraint validateTags check (log.tagInTags(tags)),
+    constraint updatedAfterCreated check(updated >= created),
+    constraint validateName check (name ~ '[a-zA-Z][a-zA-Z0-9\_\-\.]+')
 );
 
 /*
@@ -24,7 +27,7 @@ call toolkit.create_index('job.schedule', false, ARRAY ['frequency']);
 /*
  * Tag validation
  */
-call toolkit.create_trigger('job.schedule', 'insert', 'job.validateTags()');
+-- call toolkit.create_trigger('job.schedule', 'insert', 'job.validateTags()');
 /*
  * timestamp validation
  */
