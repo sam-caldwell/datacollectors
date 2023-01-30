@@ -1,3 +1,0 @@
-/*
- * job.queue_push()
- */

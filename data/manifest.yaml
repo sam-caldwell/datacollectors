@@ -475,19 +475,20 @@ postgres:
                 be restarted from its current state.
 
             - enabled: false
-              file: data/postgresql/core/job/functions/0300.func.job.queue.pop.sql
+              file: data/postgresql/core/job/functions/queue.push.sql
               description: |
-                job.pop() will allow a caller to pop the next record from the job.queue table.
-              todo: |
-                write this function, dummy...
+                job.push(<jobName>) will insert records into job.queue table.  Given a job name (varchar), this
+                procedure will insert records for each task in the job into job.queue in the order of execution.
+                Execution order is determined by taskId
 
             - enabled: false
-              file: data/postgresql/core/job/functions/.func.job.queue.push.sql
+              file: data/postgresql/core/job/functions/queue.pop.sql
               description: |
-                job.push()
-              todo: |
-                write this function, dummy...
-
+                job.pop() will return a JSON object describing the row at the current head of the FIFO queue
+                (i.e. the one with the lowest queue id value and a null expiration value), updating expiration
+                to now().
+                
+                Once a row in the queue has an expiration, the record can be purged asynchronously later.
 
 #    - name: financial
 #      description: |
