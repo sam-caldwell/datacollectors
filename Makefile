@@ -6,7 +6,7 @@ DB_PASS:="vitapro"
 
 SRC_SCHEMA_PATH="$(HOME)/git/datacollectors/data/"
 
-POSTGRES_DOCKERFILE:="upstream/containers/bitnami/postgresql/14/debian-11/Dockerfile"
+POSTGRES_DOCKERFILE:="upstream/postgresql-server/Dockerfile"
 POSTGRES_BUILD_DIR:=$(shell dirname $(POSTGRES_DOCKERFILE))
 POSTGRES_SERVER_IMAGE:="postgresql:local"
 POSTGRES_CLIENT_IMAGE:="db-client:local"
@@ -23,7 +23,8 @@ build/db/installer:
 build/db/server:
 	@( \
 		cd $(POSTGRES_BUILD_DIR) || exit 99; \
-		docker build --tag postgres:local . \
+		docker rmi $(POSTGRES_SERVER_IMAGE) || true; \
+		docker build --tag $(POSTGRES_SERVER_IMAGE) . \
 	)
 
 #ToDo: build postgresql server image.
