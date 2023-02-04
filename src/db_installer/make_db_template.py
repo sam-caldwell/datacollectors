@@ -12,10 +12,10 @@ def make_db_template(conn: connection, db_name: str) -> None:
         :return: None
     """
     try:
+        sql = f"update pg_database set datistemplate=true where datname='{db_name}';"
         with conn.cursor() as c:
-            c.execute(f"update pg_database "
-                      f"set datistemplate=true "
-                      f"where datname={db_name};")
+            c.execute(sql)
     except Error as e:
-        print(f"Error making {db_name} into template")
+        print(f"Error making {db_name} into template: {e}")
         exit(5)
+

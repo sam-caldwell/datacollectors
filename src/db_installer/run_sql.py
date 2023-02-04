@@ -25,8 +25,11 @@ def run_sql(conn: connection, sources: list[dict], db_name: str):
                         with open(sql, 'r') as f:
                             print(f"\trun :{sql}")
                             c.execute(f.read())
-                    register_sql_file(conn, db_name, sql, source.get("description", ""))
+
+                    if source.get("register_versions", False):
+                        register_sql_file(conn, db_name, sql, source.get("description", ""))
                     print("SQL file has been run.")
+
             else:
                 print(f"\tskip:{sql}")
         except ProgrammingError as e:
