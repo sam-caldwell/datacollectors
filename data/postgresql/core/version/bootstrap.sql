@@ -5,29 +5,13 @@
  * version.block_updates()
  *      block updates via trigger on the core database.
  */
-    create or replace function version.block_updates() RETURNS trigger AS
-            $$
-                begin
-                    raise exception using
-                        errcode = 'UPDATE_BLOCKED',
-                        message = 'the versioning table is write-once-read-many',
-                        hint = 'update is blocked on versioning table.';
-                end
-                    $$ language plpgsql;
-/*
- *
- */
-drop table if exists version.database;
 create table if not exists version.databases
 (
     id      serial       not null primary key,
     name    varchar(255) not null unique,
     created timestamp    not null default now()
 );
-create or replace trigger trigger_versions_databases_readonly
-    before update
-    on version.databases
-execute function version.block_updates();
+call toolkit.disable_updates('version.databases');
 /*
  *
  */
@@ -39,10 +23,7 @@ create table if not exists version.filenames
     created timestamp    not null default now()
         constraint file_name_pattern_check check (name ~ '^[a-zA-Z0-9()\.\-\_\+\/]+\.sql$')
 );
-create or replace trigger trigger_versions_filenames_readonly
-    before update
-    on version.filenames
-execute function version.block_updates();
+call toolkit.disable_updates('version.filenames');
 /*
  * create the version.data table.
  *     The versioning table is used by sql/versions to track
@@ -61,8 +42,9 @@ create table if not exists version.data
     constraint file_hash_length check (length(file_hash) = 64),
     constraint file_hash_pattern_check check (file_hash ~ '^[0-9a-f]{64}')
 );
-create unique index ndx_versioning
-    on version.data (file_name, database_name);
+call toolkit.disable_updates('version.data');
+call toolkit.create_index('version.data', true, ARRAY['file_name','database_name']);
+
 /*
  * version.register(file_name, file_hash, schema_name, database_name, description)
  *      registers a new version and optional description.

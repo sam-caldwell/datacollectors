@@ -1,8 +1,8 @@
-create or replace function toolkit.isTimestampFuture(thisTime timestamp,
+create or replace function toolkit.isTimestampFuture(this_time timestamp,
                                                      tbl varchar,
                                                      col varchar) returns boolean as
 $$
 begin
-    return toolkit.getLatestTime(tbl, col) >= thisTime;
+    return toolkit.getLatestTime(tbl, col) >= this_time;
 end
 $$ language plpgsql;

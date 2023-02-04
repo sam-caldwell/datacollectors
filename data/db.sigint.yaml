@@ -1,0 +1,10 @@
+#
+#    - name: intelligence
+#      description: |
+#        The intelligence database is for surveillance feeds from the physical world,
+#        including various SIGINT sources such as WIFI SSIDs, BSSIDs, bluetooth devices,
+#        cellular IMSI and TMSI data, and so on.  If it can be discovered, this database
+#        should be extensible enough to collect it for analysis.
+#      from_template: core
+#      template: false
+#      enabled: false

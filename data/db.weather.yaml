@@ -1,0 +1,6 @@
+#    - name: general
+#      description: |
+#        The general database is for any datacollector which cannot be easily classified.
+#      from_template: core
+#      template: false
+#      enabled: false

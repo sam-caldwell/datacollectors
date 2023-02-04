@@ -1,0 +1,19 @@
+
+#    - name: financial
+#      description: |
+#        The financial database is a database for collecting data related to the financial
+#        markets.  This OSINT datacollector will persist financial market data overtime for
+#        analysis and decision-making eventually.
+#      from_template: core
+#      template: false
+#      enabled: false
+#      schemas:
+#
+#        - name: stock
+#          description: |
+#            The financial.stock schema is used to collect stock market data.
+#          enabled: false
+#          sources:
+#            - enabled: false
+#              file: data/postgresql/financial/stock/0000.schema.sql
+#

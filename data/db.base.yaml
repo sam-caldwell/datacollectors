@@ -1,0 +1,613 @@
+---
+database:
+  description: |
+    The "base" database is used to create a template with common tooling
+    for making life in SQL easier.  This creates common schemas which
+    will provide a "base class" of sorts from which other databases in
+    this ecosystem are inherited.
+  from_template: template0
+  template: true
+  schema:
+    - name: exception
+
+      description: |
+        The exception schema defines some functions and procedures we
+        can call when raising custom exceptions.
+
+      enabled: true
+
+      functions:
+        - name: delete_blocked_on_trigger
+          enabled: false
+          language: plpgsql
+          description: |
+            DELETE is blocked
+          returns: trigger
+          code: |
+            raise exception using
+                errcode = 'DELETE_BLOCKED',
+                message = 'delete operation is blocked',
+                hint = 'delete is blocked on table';
+
+        - name: insert_blocked_on_trigger
+          enabled: false
+          language: plpgsql
+          description: |
+            INSERT is blocked.
+          returns: trigger
+          code: |
+            raise exception using
+                errcode = 'INSERT_BLOCKED',
+                message = 'insert operation is blocked',
+                hint = 'insert is blocked on table';
+
+        - name: truncate_blocked_on_trigger
+          enabled: false
+          language: plpgsql
+          description: |
+            TRUNCATE is blocked
+          returns: trigger
+          code: |
+            raise exception using
+                errcode = 'TRUNCATE_BLOCKED',
+                message = 'truncate operation is blocked',
+                hint = 'truncate is blocked on table';
+
+        - name: update_blocked_on_trigger
+          enabled: false
+          language: plpgsql
+          description: |
+            UPDATE is blocked
+          returns: trigger
+          code: |
+            raise exception using
+                errcode = 'UPDATE_BLOCKED',
+                message = 'update operation is blocked',
+                hint = 'update is blocked on table';
+
+    - name: toolkit
+
+      description: |
+        The toolkit schema defines a set of functions and stored procedures
+        which make SQL programming easier. This schema helps ensure the
+        sanitization of inputs, use of standard object naming conventions
+        and other safeguards are built into each database throughout the
+        data collector project.
+
+      enabled: true
+
+      extensions:
+        - name: pllua
+          enabled: false
+          description: lua programming language
+          schema: pg_catalog
+          version: 2.0
+
+        - name: hstore
+          enabled: true
+          description: PL/hstore extension
+          schema: pg_catalog
+          version: 1.7
+
+        - name: hstore_pllua
+          enabled: false
+          description: PL/Lua (trusted) Hstore type language
+          schema: pg_catalog
+          version: 1.0
+
+        - name: postgres_fdw
+          enabled: true
+          description: postgresql foreign data wrapper
+          schema: pg_catalog
+          version: 1.1
+
+        - name: uuid
+          enabled: true
+          description: uuid data methods
+          schema: pg_catalog
+          version: 1.1
+
+      functions:
+        - name: toolkit.callCheckFunc
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: target_function
+              type: varchar
+            - name: table_name
+              type: varchar
+            - name: column_name
+              type: varchar
+            - name: value_column
+              type: varchar
+
+          returns: varchar
+
+          description: |
+            toolkit.callCheckFunc(<func_name>, <table_name>, <column_name>)
+            will return a string which can be used to create a trigger which
+            would call this function when the string is executed.
+
+          code: |
+            return format('%s(%s, ''%s'', ''%s'')',
+                     target_function, column_name, table_name, value_column);
+
+        - name: toolkit.getLatestTime
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: tbl
+              type: varchar
+            - name: col
+              type: varchar
+
+          returns: timestamp
+
+          description: |
+            toolkit.getLatestTime(<tbl>, <col>) returns the latest timestamp
+            in the column and table passed as input.
+
+          code: |
+            execute(format('select max(%s) from %s', col, tbl)) into latest;
+            return latest;
+
+        - name: toolkit.hash
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: input_string
+              type: varchar
+
+          returns: varchar
+
+          description: |
+            Given a string (s), toolkit.hash(s) will return the hex-encoded
+            sha256 hash of s.
+
+          code: |
+            return encode(sha256(convert_to(s,'UTF8')),'hex');
+
+        - name: toolkit.isUpdatedAfterCreated
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: created_time
+              type: timestamp
+            - name: tbl
+              type: varchar
+            - name: updated_col
+              type: varchar
+
+          returns: boolean
+
+          description: |
+            Given a table name and the name of its updated timestamp column
+            along with a created timestamp value, return true if the created
+            timestamp is greater than or equal to the latestTime timestamp.
+            Otherwise, return false.
+
+          code: |
+            return created_time >= toolkit.getLatestTime(tbl, updated_col);
+
+        - name: toolkit.isTimestampFuture
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: this_time
+              type: timestamp
+            - name: tbl
+              type: varchar
+            - name: col
+              type: varchar
+
+          returns: boolean
+
+          description:
+            Given a timestamp (thisTime), table name and column name (where
+            the column is a timestamp), this function (isTimestampFuture()
+            will return true if thisTime is later than all times in the
+            given table or false otherwise.
+
+          code: |
+            return toolkit.getLatestTime(tbl, col) >= this_time;
+
+      procedures:
+        - name: toolkit.addCheckConstraint
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: tbl
+              type: varchar
+            - name: checkName
+              type: varchar
+            - name: checkFuncCall
+              type: varchar
+
+          description: |
+            Given a table name, a logical check name and a string describing
+            a boolean function call, this procedure creates a check
+            constraint on the given table which will execute the check
+            function as described to ensure that the table meets the
+            expectations defined in the  check function.
+
+          variables:
+            - name: constraintName
+              type: varchar
+              value: |
+                format(
+                  'checkConstraint%s',
+                  toolkit.hash(
+                    concat(tbl, '_', checkName)));
+
+          code: |
+            execute (
+              format('alter table %s add constraint %s check( %s );',
+                tbl,
+                constraintName,
+                checkFuncCall));
+
+        - name: toolkit.allow_inserts
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: tbl_name
+              type: varchar
+
+          description: |
+            toolkit.allow_inserts() will delete any trigger created by
+            block_inserts() and thereby allow INSERT operations on the
+            given table.
+
+          code: |
+            call toolkit.delete_trigger(
+               tbl_name,
+               'insert',
+               'exception.block_inserts');
+
+        - name: toolkit.assert
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: condition
+              type: boolean
+            - name: exception_string
+              type: varchar
+
+          description: |
+            Provides an assertion mechanism.
+            If called, and if the assertion is true, then raise the given
+            ASSERTION_ERROR with the provided message.
+
+          code: |
+            if not condition then
+              raise exception using
+              errcode = 'ASSERTION_ERROR',
+              message = format('%', exception_string),
+              hint = 'An assert() call was made and the condition was false';
+            end if;
+
+        - name: toolkit.block_insert
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: table_name
+              type: varchar
+
+          description: |
+            This procedure creates a trigger which blocks insert operations
+            on a given table.
+
+          code: |
+            call toolkit.create_trigger(
+               table_name,
+               'insert',
+               'exception.block_inserts');
+
+        - name: toolkit.create_enum
+
+          enabled: false
+
+          language: plpgsql
+
+          parameters:
+            - name: name
+              type: varchar
+            - name: elements
+              type: varchar[]
+
+          description: |
+            Provides toolkit.create_enum() to create enumerated types using
+            an array of varchar input. This guarantees the enum is created
+            consistently and if the enumerated type already exists, the
+            procedure will raise a notice rather than a fatal error, similar
+            to an "if not exists" clause.
+
+          code: |
+            if (select 1 from pg_type where typname = name) then
+                raise notice 'type: %...exists', name;
+            else
+                execute sql;
+            end if;
+
+        - name: toolkit.deleteCheckConstraint
+
+          enabled: false
+
+          language: plpgsql
+
+          description: |
+            toolkit.deleteCheckConstraint() will remove any constraint added
+            using toolkit.addCheckConstraint().
+
+          parameters:
+            - name: tbl
+              type: varchar
+            - name: checkName
+              type: varchar
+
+          variables:
+            - name: constraintName
+              type: varchar
+              value: |
+                format(
+                  'checkConstraint%s',
+                  toolkit.hash(
+                    concat(tbl, '_', checkName)));
+
+          code: |
+            execute (format('alter table %s drop constraint %s;',
+                tbl, constraintName));
+
+        - name: toolkit.create_sequence
+
+          enabled: false
+
+          language: plpgsql
+
+          description: |
+            Provides toolkit.create_sequence() to create sequence types
+
+          parameters:
+            - name: sequence_name
+              type: varchar
+            - name: start_value
+              type: integer
+            - name: increment_value
+              type: integer
+
+          code: |
+            execute format(
+                  'create sequence if not exists %s start %s increment %s;',
+                    sequence_name, start_value, increment_value);
+
+        - name: toolkit.create_index
+
+          enabled: false
+
+          language: plpgsql
+
+          description: |
+            Provides toolkit.create_index() to create an index against one or
+            more columns with or without a uniqueness constraint.
+
+          parameters:
+            - name: index_name
+              type: varchar
+            - name: uniqueness
+              type: boolean
+            - name: cols
+              type: varchar[]
+
+          variables:
+            - name: index_name
+              type: |
+                varchar := format('ndx_%s_%s',
+                  replace(tbl, '.', '_'),
+                  array_to_string(cols, '_'));
+            - name: col
+              type: varchar
+              value: := array_to_string(cols, ',');
+            - name: unq
+              type: varchar
+              value: case when u then 'unique' else '' end;
+            - name: sql
+              type: varchar
+              value: |
+                format('create %s index if not exists %s on %s (%s)',
+                  unq, index_name, tbl, col);
+
+          code: execute sql;
+
+        - name: toolkit.delete_index
+
+          enabled: false
+
+          description: |
+            Provides toolkit.delete_index() to delete an existing index
+            safely if it exists.
+
+          parameters:
+            - name: tbl
+              type: varchar
+            - name: cols
+              type: varchar[]
+          variables:
+            - name: index_name
+              type: varchar
+              value: |
+                format('ndx_%s_%s',
+                  replace(tbl, '.', '_'),
+                  array_to_string(cols, '_'));
+            - name: sql
+              type: varchar
+              value: format('drop index if exists %s', index_name);
+          code: execute sql;
+
+        - name: toolkit.create_trigger
+          enabled: false
+          description: |
+            Provides a toolkit.create_trigger procedure to create a trigger
+            on a given database, table and operation (e.g. INSERT, UPDATE,
+            DELETE).
+          parameters:
+            - name: table_name
+              type: varchar
+            - name: operation
+              type: varchar
+            - name: action
+              type: varchar
+          variables:
+            - name: action_func
+              type: varchar
+              value: replace(replace(action, '(', ''), ')', '');
+            - name: trigger_name
+              type: varchar
+              value: |
+                format('trigger_%s_%s_%s',
+                  replace(table_name, '.', '_'), operation,
+                  replace(action_func, '.', '_'));
+            - name: sql
+              type: varchar
+              value: |
+                format('drop trigger if exists %s on %s;',
+                  trigger_name, table_name);
+            - name: allowed_operation
+              type: boolean
+              value: |
+                upper(operation) == 'INSERT' or
+                upper(operation) == 'UPDATE' or
+                upper(operation) == 'DELETE';
+          code: |
+            if allowed_operation then
+                execute sql;
+            else
+              raise exception using
+                errcode = 'INVALID_INPUT',
+                message = format(
+                    'toolkit.delete_trigger() only supports INSERT, ' ||
+                    'UPDATE, DELETE operations. got: %s', operation),
+                hint = 'Check the operation value passed as input to ' ||
+                       'toolkit.delete_trigger()';
+            end if;
+
+        - name: toolkit.delete_trigger
+          enabled: false
+          description: |
+            toolkit.delete_trigger() will lookup and delete any
+            matching trigger.
+          parameters:
+            - name: table_name
+              type: varchar
+            - name: operation
+              type: varchar
+            - name: action
+              type: varchar
+          variables:
+            - name: action_func
+              type: varchar
+              value: replace(replace(action, '(', ''), ')', '');
+            - name: trigger_name
+              type: varchar
+              value: |
+                format('trigger_%s_%s_%s',
+                  replace(table_name, '.', '_'), operation,
+                    replace(action_func, '.', '_'));
+            - name: sql
+              type: varchar
+              value: |
+                format('drop trigger if exists %s on %s;',
+                  trigger_name, table_name);
+            - name: allowed_operation
+              type: boolean
+              value: |
+                upper(operation) == 'INSERT' or
+                upper(operation) == 'UPDATE' or
+                upper(operation) == 'DELETE';
+          code: |
+            if allowed_operation then
+              execute sql;
+            else
+              raise exception using
+                errcode = 'INVALID_INPUT',
+                message = format(
+                  'toolkit.delete_trigger() only supports ' ||
+                  'INSERT, UPDATE, DELETE operations. got: %s',
+                      operation),
+                hint = 'Check the operation value passed as input to ' ||
+                       'toolkit.delete_trigger()';
+            end if;
+
+        - name: toolkit.delete_type
+          enabled: false
+          description: |
+            toolkit.delete_type() will delete an enum or other user-defined
+            type if it exists.
+          parameters:
+            - name: name
+              type: varchar
+          code: execute format('drop type %s', name);
+
+        - name: toolkit.block_inserts
+          enabled: false
+          description: |
+            toolkit.block_inserts() will create a trigger on a given table to
+            block any INSERT operation.
+          parameters:
+            - name: table_name
+              type: varchar
+          code: |
+            call toolkit.create_trigger(table_name,'insert',
+              'exception.block_inserts');
+
+        - name: toolkit.disable_updates
+          enabled: false
+          description: |
+            toolkit.disable_updates() will create a trigger on a given
+            table to block any UPDATE operation.  This results in the
+            table being write-once, read-many (WORM)
+          parameters:
+            - name: table_name
+              type: varchar
+          code: |
+            call toolkit.create_trigger(table_name,'update',
+              'exception.block_updates');
+
+        - name: toolkit.enable_updates
+          enabled: false
+          description: |
+            toolkit.enable_updates() will delete any existing trigger
+            created by toolkit.disable_updates() and allow UPDATE
+            operations to succeed.
+          parameters:
+            - name: tbl_name
+              type: varchar
+          code: |
+            call toolkit.delete_trigger(tbl_name,'update',
+              'exception.block_updates');

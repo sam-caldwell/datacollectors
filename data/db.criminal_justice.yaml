@@ -1,0 +1,24 @@
+
+- name: criminal_justice
+  description: |
+    The criminal_justice database is used to collect data related to criminal justice policy for analysis
+    and investigation of policy opportunities.
+  enabled: false
+  from_template: template0
+  template: false
+  schemas:
+
+    - name: tdcj_inmates
+      description: |
+        The criminal_justice.tdcj_inmates schema is designed to collect data from the Texas Department of 
+        Criminal Justice - Institutional Division (TDCJ-ID).
+      enabled: true
+      sources:
+        - enabled: true
+          file: data/postgresql/criminal_justice/tdcj_inmates/types/genders.sql
+
+        - enabled: false
+          file: data/postgresql/criminal_justice/tdcj_inmates/types/races.sql
+
+        - enabled: false
+          file: data/postgresql/criminal_justice/tdcj_inmates/types/release.date.types.sql
