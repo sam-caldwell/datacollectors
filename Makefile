@@ -6,14 +6,13 @@ DB_PASS:="vitapro"
 
 SRC_SCHEMA_PATH="$(HOME)/git/datacollectors/data/"
 
+POSTGRES_DOCKERFILE:="upstream/containers/bitnami/postgresql/14/debian-11/Dockerfile"
+POSTGRES_BUILD_DIR:=$(shell dirname $(POSTGRES_DOCKERFILE))
 POSTGRES_SERVER_IMAGE:="postgresql:local"
 POSTGRES_CLIENT_IMAGE:="db-client:local"
-
 POSTGRES_CONTAINER:="postgres"
 
 CUR_DIR:=$(shell pwd)
-
-GOPATH:=$(HOME)/git/datacollectors:$(HOME)/go/pkg/mod:$(HOME)/go:$(HOME)/git/
 
 build/db/list_sql_files:
 	@go build -o bin/list_sql_files src/cmd/list_sql_files/main.go
@@ -21,10 +20,15 @@ build/db/list_sql_files:
 build/db/installer:
 	@go build -o bin/db_installer src/db_installer/main.go
 
+build/db/server:
+	@( \
+		cd $(POSTGRES_BUILD_DIR) || exit 99; \
+		docker build --tag postgres:local . \
+	)
 
 #ToDo: build postgresql server image.
 
-build/db/client: build/db/installer
+#build/db/client: build/db/installer
 #	@docker build --tag $(POSTGRES_CLIENT_IMAGE) \
 #                  -f $(CUR_DIR)/data/Dockerfile .
 
@@ -39,13 +43,21 @@ start/db/server: stop/db/server
 #			   --volume $(CUR_DIR)/storage/db_preinit:/docker-entrypoint-preinitdb.d
 	docker run -d \
 			   --rm \
-			   --publish $(DB_HOST):5432:5432 \
+			   --publish $(DB_HOST):$(DB_PORT):$(DB_PORT) \
 			   --name $(POSTGRES_CONTAINER) \
 			   -e POSTGRESQL_DATABASE=$(DB_USER) \
 			   -e POSTGRESQL_PASSWORD=$(DB_PASS) \
 			   $(POSTGRES_SERVER_IMAGE)
 
-deploy/db/schema: stop/db/server clean/db start/db/server build/db/client
+deploy/db/schema: clean/db
+	@python3 src/db_installer --manifest data \
+							  --db_host $(DB_HOST) \
+							  --db_port $(DB_PORT) \
+							  --db_user $(DB_USER) \
+							  --db_pass $(DB_PASS) \
+							  --db_name $(DB_NAME)
+	@say "make file finished"
+
 #	@./bin/db_installer $(DB_HOST) $(DB_PORT) $(DB_NAME) $(DB_USER) $(DB_PASS) $(SRC_SCHEMA_PATH)
 #	docker run -it \
 #			   --volume $(CUR_DIR)/data/:/opt/ \
