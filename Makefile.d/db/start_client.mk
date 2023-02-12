@@ -1,0 +1,24 @@
+#
+#
+#
+
+POSTGRES_DOCKER_CLIENT_START_FLAGS:=-it
+#POSTGRES_DOCKER_CLIENT_ENTRYPOINT:= --entrypoint ''
+#POSTGRES_DOCKER_CLIENT_CMD:=/bin/bash
+
+#POSTGRES_DOCKER_CLIENT_START_FLAGS:=-d --rm
+POSTGRES_DOCKER_CLIENT_ENTRYPOINT:= --entrypoint '/opt/client_entrypoint.sh'
+POSTGRES_DOCKER_CLIENT_CMD:=''
+
+db/start/client: db/stop/client db/build/client
+	docker run $(POSTGRES_DOCKER_CLIENT_START_FLAGS) \
+	   --name $(POSTGRES_CLIENT_CONTAINER) \
+	   -e POSTGRESQL_DB_HOST=$(POSTGRESQL_DB_HOST) \
+	   -e POSTGRESQL_DB_PORT=$(POSTGRESQL_DB_PORT) \
+	   -e POSTGRESQL_DB_NAME=$(POSTGRESQL_DB_NAME) \
+	   -e POSTGRESQL_DB_USER=$(POSTGRESQL_DB_USER) \
+	   -e POSTGRESQL_DB_PASS=$(POSTGRESQL_DB_PASS) \
+	   $(POSTGRES_DOCKER_CLIENT_ENTRYPOINT) \
+	   --volume $(CUR_DIR)/data/postgresql/:/opt/sql/ \
+	   --volume $(CUR_DIR)/src/db_installer:/usr/bin/db_installer \
+	   $(POSTGRES_CLIENT_IMAGE) $(POSTGRES_DOCKER_CLIENT_CMD)

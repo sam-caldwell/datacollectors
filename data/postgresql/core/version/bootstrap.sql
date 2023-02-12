@@ -5,15 +5,15 @@
  * version.block_updates()
  *      block updates via trigger on the core database.
  */
-    create or replace function version.block_updates() RETURNS trigger AS
-            $$
-                begin
-                    raise exception using
-                        errcode = 'UPDATE_BLOCKED',
-                        message = 'the versioning table is write-once-read-many',
-                        hint = 'update is blocked on versioning table.';
-                end
-                    $$ language plpgsql;
+create or replace function version.block_updates() RETURNS trigger AS
+        $$
+            begin
+                raise exception using
+                    errcode = 'UPDATE_BLOCKED',
+                    message = 'the versioning table is write-once-read-many',
+                    hint = 'update is blocked on versioning table.';
+            end
+                $$ language plpgsql;
 /*
  *
  */

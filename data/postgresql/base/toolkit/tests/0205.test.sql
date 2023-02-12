@@ -1,0 +1,54 @@
+-- /*
+--  *
+--  */
+-- create or replace procedure toolkit.test1() as
+-- $$
+-- begin
+--     create table test_table
+--     (
+--         t timestamp not null default now()
+--     );
+--     call toolkit.ensureFutureTimestamp('test_table', 't');
+--     insert into test_table (t) values (now()), (now()), (now()), (now());
+--     drop procedure toolkit.test1();
+-- end
+-- $$ language plpgsql;
+-- /*
+--  */
+-- create or replace procedure toolkit.test2() as
+-- $$
+-- declare
+--     t0 timestamp:= now();
+--     t1 timestamp:= t0 - interval '1:25';
+--     t2 timestamp:= t1 - interval '1:25';
+-- begin
+--     create table test_table
+--     (
+--         t timestamp not null default now()
+--     );
+--     call toolkit.ensureFutureTimestamp('test_table', 't');
+--     begin
+--         insert into test_table (t) values (t0), (t1), (t2);
+--         raise exception 'ensureFutureTimestamp() failed';
+--     exception
+--         when others then
+--             raise notice 'ensureFutureTimestamp() is ok';
+--     end;
+--     drop procedure toolkit.test2();
+-- end
+-- $$ language plpgsql;
+-- /*
+--  *  ------------------------------------------------------------------------------
+--  *  Running tests
+--  *     All unit tests should be above this section
+--  *  ------------------------------------------------------------------------------
+--  */
+-- do
+-- $$
+--     begin
+--         call toolkit.test1();
+--         rollback;
+--         call toolkit.test2();
+--         rollback;
+--     end
+-- $$ language plpgsql;
