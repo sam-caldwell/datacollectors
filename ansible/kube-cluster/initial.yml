@@ -2,9 +2,6 @@
 - hosts: all
   become: yes
   tasks:
-    - name: create the 'ubuntu' user
-      user: name=ubuntu append=yes state=present createhome=yes shell=/bin/bash
-
     - name: allow 'samcaldwell' to have passwordless sudo
       lineinfile:
         dest: /etc/sudoers
@@ -15,12 +12,40 @@
       hostname:
         name: "{{ hostname }}"
 
+    - name: check for a swap file (0/3)
+      stat:
+        path: /swap.img
+      register: swap_file_exists
+
+    - name: Disable SWAP since kubernetes can't work with swap enabled (1/3)
+      shell: |
+        swapoff -a
+      when: swap_file_exists.stat.exists == true
+
+    - name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/3)
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+      when: swap_file_exists.stat.exists == true
+
+    - name: Remove the swap file (3/3)
+      file:
+        path: /swap.img
+        state: absent
+
     - name: set up authorized keys for the ubuntu user
       authorized_key: user=ubuntu key="{{item}}"
       with_file:
         - ~/.ssh/id_rsa.pub
     - name: create Docker config directory
       file: path=/etc/docker state=directory
+
+    - name: install network tools (net-tools)
+      apt:
+        name: net-tools
+        state: present
+        force: yes
 
     - name: changing Docker to systemd driver
       copy:
@@ -73,14 +98,16 @@
         force: yes
 
     - name: initialize the cluster
-      shell: kubeadm init --pod-network-cidr=10.244.0.0/16 >> cluster_initialized.txt
+      shell: kubeadm init --kubernetes-version 1.22.4 --pod-network-cidr=172.16.20.0/24 -v=5 >> cluster_initialized.txt
+      become: yes
+      become_user: root
       args:
         chdir: $HOME
         creates: cluster_initialized.txt
 
     - name: create .kube directory
       become: yes
-      become_user: ubuntu
+      become_user: samcaldwell
       file:
         path: $HOME/.kube
         state: directory
@@ -89,13 +116,13 @@
     - name: copy admin.conf to user's kube config
       copy:
         src: /etc/kubernetes/admin.conf
-        dest: /home/ubuntu/.kube/config
+        dest: /home/samcaldwell/.kube/config
         remote_src: yes
-        owner: ubuntu
+        owner: samcaldwell
 
     - name: install Pod network
       become: yes
-      become_user: ubuntu
+      become_user: samcaldwell
       shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml >> pod_network_setup.txt
       args:
         chdir: $HOME
