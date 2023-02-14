@@ -1,4 +1,4 @@
-create extension postgres_fdw
+create extension if not exists postgres_fdw
     schema pg_catalog
     version '1.1';
 

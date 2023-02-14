@@ -1,0 +1,716 @@
+---
+kafka:
+  topics:
+    - name:
+    - name: raw_http_scraped
+    - name: raw_sdr_wifi
+    - name: raw_sdr_bluetooth
+    - name: raw_sdr_imsi
+    - name: raw_sdr_tmsi
+    - name: raw_video_stream
+
+postgres:
+  config:
+    default_template: template0
+    connect_retries: 40
+    connect_retry_interval: 2
+  databases:
+    #
+    # base
+    #
+    - name: base
+      enabled: true
+      register_versions: false
+      description: |
+        The "base" database is used to create a template with common tooling for making life in
+        SQL easier.  This creates common schemas which will provide a "base class" of sorts from
+        which other databases in this ecosystem are inherited.
+      use_template: template0
+      template: true
+      schemas:
+        - name: exception
+          description: |
+            This schema defines functions and stored procedures used to raise common
+            exceptions.  For example exception.block_inserts() will raise a common 
+            'INSERT_BLOCKED' exception which can be reused throughout the project schema.
+          enabled: true
+          sources:
+            - enabled: true
+              file: /opt/sql/base/exception/block.inserts.sql
+              description: |
+                creates the INSERT_BLOCKED exception for tables which are read-only or
+                write-once, read-many.
+
+            - enabled: true
+              file: /opt/sql/base/exception/block.updates.sql
+              description: |
+                creates the UPDATE_BLOCKED exception for tables which are write-once, read-many (WORM).
+
+        - name: toolkit
+          enabled: true
+          description: |
+            The schema defines functions and stored procedures that make SQL programming
+            easier.  The goal is to create wrapper functions/procedures for creating common
+            SQL structures or for performing operations in a consistent manner with less actual
+            effort.  This also ensures data sanitization, naming conventions and other safeguards
+            are built into our database schema through the toolkit rather than ad-hoc.
+          sources:
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/extensions/uuid.sql
+              register_versions: false
+              description: Load support for UUIDs.
+
+            - enabled: false
+              file: /opt/sql/base/toolkit/extensions/pllua.sql
+              register_versions: false
+              description: Load support for Lua.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/extensions/postgres.fdw.sql
+              register_versions: false
+              description: Load support for postgres foreign data wrapper.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/functions/getLatestTime.sql
+              description: |
+                toolkit.getLatestTime(<tbl>, <col>) returns the latest timestamp in the column and table
+                passed as input.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/functions/hash.sql
+              description: |
+                Given a string (s), toolkit.hash(s) will return the hex-encoded sha256 hash of s.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/assert.sql
+              description: Provides an assertion mechanism
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/create_enum.sql
+              description: |
+                Provides toolkit.create_enum() to create enumerated types using an array of varchar input. This
+                guarantees the enum is created consistently and if the enumerated type already exists, the 
+                procedure will raise a notice rather than a fatal error, similar to an "if not exists" clause.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/addCheckConstraint.sql
+              description: |
+                Given a table name, a logical check name and a string describing a boolean function call,
+                this procedure creates a check constraint on the given table which will execute the check
+                function as described to ensure that the table meets the expectations defined in the 
+                check function.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/deleteCheckConstraint.sql
+              description: |
+                toolkit.deleteCheckConstraint() will remove any constraint added using toolkit.addCheckConstraint().
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/functions/callCheckFunc.sql
+              description: |
+                Provides toolkit.callCheckFunc() which will create the function call string based on the standard
+                call pattern.  The returned function call string can be passed to toolkit.addCheckConstraint() as
+                the check function which will be invoked each for a given check.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/create_sequence.sql
+              description: Provides toolkit.create_sequence() to create sequence types
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/create_index.sql
+              description: |
+                Provides toolkit.create_index() to create an index against one or more columns
+                with or without a uniqueness constraint.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/delete_index.sql
+              description: |
+                Provides toolkit.delete_index() to delete an existing index safely if it exists.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/functions/isTimestampFuture.sql
+              description: |
+                Given a timestamp (thisTime), table name and column name (where the column is a timestamp),
+                this function (isTimestampFuture() will return true if thisTime is later than all times in the
+                given table or false otherwise.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/functions/isUpdatedAfterCreated.sql
+              description: |
+                Given a table name and the name of its updated timestamp column along with a created timestamp
+                value, return true if the created timestamp is greater than or equal to the latestTime timestamp.
+                Otherwise, return false.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/create_trigger.sql
+              description: |
+                Provides a toolkit.create_trigger procedure to create a trigger on a given database, table
+                and operation (e.g. INSERT, UPDATE, DELETE).
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/delete_trigger.sql
+              description: toolkit.delete_trigger() will lookup and delete any matching trigger.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/delete_type.sql
+              description: |
+                toolkit.delete_type() will delete an enum or other user-defined type
+                if it exists.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/block_inserts.sql
+              description: |
+                toolkit.block_inserts() will create a trigger on a given table to 
+                block any INSERT operation.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/disable_updates.sql
+              description: |
+                toolkit.disable_updates() will create a trigger on a given table to
+                block any UPDATE operation.  This results in the table being write-
+                once, read-many (WORM)
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/enable_updates.sql
+              description: |
+                toolkit.enable_updates() will delete any existing trigger created by
+                toolkit.disable_updates() and allow UPDATE operations to succeed.
+
+            - enabled: true
+              file: /opt/sql/base/toolkit/procedures/allow_inserts.sql
+              description: |
+                toolkit.allow_inserts() will delete any trigger created by block_inserts()
+                and thereby allow INSERT operations on the given table.
+
+    #
+    # core
+    #
+    - name: core
+      enabled: true
+      description: |
+        The core database is used to store version-control data, job-management data, event logs and other 
+        information fundamental to the data collector operation.  This database is exposed by foreign schema
+        to the other databases in the system, and its functions and stored procedures even access its own data
+        through toolkit-schema facilities over the foreign schema connections.  This is done to balance the
+        need for database performance with a symmetry of design, where other databases must use the toolkit
+        facilities to record log events or to access the central configuration store.
+      use_template: base
+      template: false
+      schemas:
+        - name: version
+          enabled: true
+          description: |
+            The core.version schema allows for version tracking used to facilitate
+            database schema maintenance.  The manifest defines the entire sources
+            set for a given database schema, but once run, a given source will never
+            execute again.  Further, this allows hash-based file change tracking to
+            detect and fail of known (and run) schema sources have changed.  This
+            helps guarantee the schema is re-deployable without errors.
+            
+            This schema is accessible only within the core database.
+
+          sources:
+            - enabled: true
+              file: /opt/sql/core/version/bootstrap.sql
+              description: |
+                The bootstrap SQL file must be a self-contained single file capable of
+                creating everything we need to register versions, including itself after
+                completion.  This absolutely must be the first script executed to create
+                the database schema.
+
+        - name: config
+          description: |
+            The config schema defines a centralized store for configuration parameters within
+            the database.  Initially this is a simple key-value store with a get() and set(), 
+            but the plan here is to extend the config schema to support expiring key-value
+            records as well as to support encrypted key-value records where the symmetric
+            encryption keys are kept in the caller.
+            
+            This schema is exposed for access by other databases in the system.  Thus, the 
+            functions and stored procedures defined here must also access the config data
+            tables through the foreign schema connections.
+
+          enabled: true
+          sources:
+            - enabled: true
+              file: /opt/sql/core/config/tasks/config.class.sql
+              description: |
+                config.class is an enumerated data type used to segment config.data rows into
+                their storage class (e.g. clear text or encrypted).  This value will
+                determine which config.* methods can be used to get/set values.
+
+            - enabled: true
+              file: /opt/sql/core/config/tables/config.data.sql
+              description: |
+                This table contains our key-value configuration data.
+              todo: |
+                1. Implement a timer or trigger to expire records.
+                2. Implement encrypted records
+
+            - enabled: true
+              file: /opt/sql/core/config/tables/expiration.sql
+              description: |
+                This table identifies any expiration rules for key-value records in config.data.
+                If a record exists in config.expiration for a key in config.data, then it will be
+                expired some time approximately on or after the expiration
+
+            - enabled: true
+              file: /opt/sql/core/config/procedures/set.expiration.sql
+              description: |
+                config.setExpiration() will insert a row into config.expiration.
+
+            - enabled: true
+              file: /opt/sql/core/config/procedures/delete.expiration.sql
+              description: |
+                config.deleteExpiration() will delete a row from config.expiration.
+
+            - enabled: true
+              file: /opt/sql/core/config/functions/get.sql
+              description: config.get() will return the cleartext value associated with a given key.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
+
+            - enabled: true
+              file: /opt/sql/core/config/functions/set.text.sql
+              description: config.set(<key>, <value>) will set a cleartext value for a given key.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
+
+            - enabled: true
+              file: /opt/sql/core/config/functions/set.boolean.sql
+              description: |
+                config.set(<key>, <bool>) will set a cleartext value for a given key with a boolean value.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
+
+            - enabled: true
+              file: /opt/sql/core/config/functions/set.decimal.sql
+              description: |
+                config.set(<key>, <decimal>) will set a cleartext value for a given key with a decimal value.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
+
+            - enabled: true
+              file: /opt/sql/core/config/functions/set.integer.sql
+              description: |
+                config.set(<key>, <integer>) will set a cleartext value for a given key with an integer value.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
+
+            - enabled: true
+              file: /opt/sql/core/config/functions/set.timestamp.sql
+              description: |
+                config.set(<key>, <timestamp>) will set a cleartext value for a given key with a timestamp value.
+              todo: |
+                1. for encrypted values, get() should throw exception.
+                2. for non-existent values, get() should throw an exception
+
+            - enabled: true
+              file: /opt/sql/core/config/tasks/initial.configuration.sql
+              description: |
+                This task will create the default configuration values.
+
+        - name: log
+          description: |
+            This schema stores log events for the project database and provides functions
+            and stored procedures for interacting with the log event data.
+
+            This schema is exposed for access by other databases in the system.  Thus, the 
+            functions and stored procedures defined here must also access the config data
+            tables through the foreign schema connections.
+
+          enabled: true
+          sources:
+            - enabled: true
+              file: /opt/sql/core/log/tasks/severity.sql
+              description: |
+                Create the event severity enumerated type.
+
+            - enabled: true
+              file: /opt/sql/core/log/tables/keys.sql
+              description: |
+                Create the keys table.
+
+            - enabled: true
+              file: /opt/sql/core/log/procedures/tagsReadOnly.sql
+              description: |
+                log.tagsReadOnly() uses toolkit.block_inserts() to make the tags table readonly.
+                This means that in the system tags should be pre-registered using log.addTag()
+                to minimize the number of log.events records which just contain noise.  We want
+                our code to keep our event data clean not act like a bunch of hipster javascript
+                web developers.
+
+            - enabled: true
+              file: /opt/sql/core/log/procedures/tagsReadWrite.sql
+              description: |
+                log.tagsReadWrite() turns off the default readonly restriction on the tags table
+                to allow new tags to be added.  This is intended to be used by log.addTag() and
+                should be an exceptional use case to keep our tags table clean.
+
+            - enabled: true
+              file: /opt/sql/core/log/tables/tags.sql
+              description: |
+                implement the tags table.
+
+            - enabled: true
+              file: /opt/sql/core/log/functions/listTagIds.sql
+              description: |
+                log.listTagIds() will accept an optional limit and offset integer and return an array of 
+                integers from that offset using that limit (record count), where the returned array is a
+                subset of all tag ids in log.tags table.
+
+            - enabled: true
+              file: /opt/sql/core/log/functions/listTags.sql
+              description: |
+                log.listTags() will accept an optional limit and offset integer and return an array of 
+                varchar (strings) from that offset using that limit (record count), where the returned array is a
+                subset of all tags (tag keys) in log.tags table.
+
+            - enabled: true
+              file: /opt/sql/core/log/functions/getTagSetId.sql
+              description: |
+                log.getTagSetId() will return a list of tag ids (integers) associated with a given array of
+                tags (strings).  Thus, we can pass the set ARRAY[''env:dev'', ''env:prod''] to this function and
+                get ARRAY[1,2] in response where ''env:dev'' is id:1 and ''env:prod'' is id:2.
+
+            - enabled: true
+              file: /opt/sql/core/log/functions/tagsValid.sql
+              description: |
+                log.tagsValid() takes an array of tags as input and validates that all elements in the array are in
+                the log.tags table.
+
+            - enabled: true
+              file: /opt/sql/core/log/functions/validateTags.sql
+              description: |
+                log.validateTags() provides tag validation trigger functionality.
+
+            - enabled: true
+              file: /opt/sql/core/log/functions/tagInTags.sql
+              description: |
+                log.tagsInTags() accepts an array of tag ids.
+
+            - enabled: true
+              file: /opt/sql/core/log/procedures/addTag.sql
+              description: |
+                log.addTag() inserts a new (validated) tag into the log.tags table.
+
+            - enabled: true
+              file: /opt/sql/core/log/tables/events.sql
+              description: |
+                log.events is a table for collecting event data in our database.  These events
+                are intended to be highly structured descriptors (not fucking logs!) aimed at
+                ensuring observability of the datacollectors system.
+              todo: |
+                1. Enrich the events system with external references where needed to give additional context.
+                2. We need to add alerting mechanisms and thresholds to establish SLOs on our events.
+
+            - enabled: true
+              file: /opt/sql/core/log/procedures/critical.sql
+              description: |
+                log.critical() is a function for writing critical severity events.
+
+            - enabled: true
+              file: /opt/sql/core/log/procedures/debug.sql
+
+            - enabled: true
+              file: /opt/sql/core/log/procedures/error.sql
+
+            - enabled: true
+              file: /opt/sql/core/log/procedures/info.sql
+
+            - enabled: true
+              file: /opt/sql/core/log/procedures/log.sql
+
+            - enabled: true
+              file: /opt/sql/core/log/tasks/default.tags.env.dev.sql
+
+            - enabled: true
+              file: /opt/sql/core/log/tasks/default.tags.env.stage.sql
+
+            - enabled: true
+              file: /opt/sql/core/log/tasks/default.tags.env.prod.sql
+
+            - enabled: true
+              file: /opt/sql/core/log/tasks/default.tags.svc.datacollectors.sql
+
+            - enabled: true
+              file: >-
+                /opt/sql/core/log/tasks/default.tags.svc.kubernetes.sql
+
+            - enabled: true
+              file: /opt/sql/core/log/tasks/default.tags.svc.kafka.sql
+        - name: job
+          description: |
+            The core.job schema organizes job execution for the datacollectors project.  This
+            schema includes the data and tooling needed to create, plan, schedule and execute
+            datacollector jobs over time.  The goal of this schema is to evolve to provide a
+            self-managing and sustainable data collector job manager with reliability in mind.
+            
+            In the datacollectors a "job" is a workflow definition consisting of one or more
+            tasks, where a "task" is the smallest atomic unit of work representing a definition
+            of input parameters, expected outputs and a container-based unit of automation called
+            a "runner."
+            
+            This schema is accessible only within the core database.
+
+          enabled: true
+          sources:
+            - enabled: true
+              file: /opt/sql/core/job/tasks/status.sql
+              description: |
+                The job status enumerated type defines where in the workflow the job is.
+                We see the simple choices here: a job is either not_started or it is in_progress as
+                valid workflow states.  The only other option is "disabled." to prevent evaluation
+                by the job scheduler.
+
+            - enabled: true
+              file: /opt/sql/core/job/functions/validateTags.sql
+              description: |
+                job.validateTags() is a trigger function which will validate that the tags
+                within the associated job tables are valid tags in the log.tags table.
+
+            - enabled: true
+              file: /opt/sql/core/job/tables/job.schedule.sql
+              description: |
+                The job.schedule table defines a "job" the top level object of the workflow.  Here, we give the job
+                a logical name, map it to an Id (integer) we can reference elsewhere, and define the job status,
+                execution frequency (interval) and tags.  We allow a job to be updated, and we guarantee that our 
+                timestamps are proper (e.g. not backdated) using constraints.
+                
+                Notes:
+                  0. Status is an enumerated type
+                  1. Frequency is an integer (4 bytes) rather than interval (16 bytes) to conserve space since no
+                     job should execute less than once a year.  Almost all jobs will execute much more frequently.
+                  2. tags are mapped to the log.tags table to keep log.events and job.* consistent.  We do this 
+                     consistency in the database because we are not lazy fucking web developers, and this is not 
+                     joomla.
+              todo: |
+                1. add timestamp validation to ensure created timestamps move into the future always.
+                2. add timestamp validation to ensure updated timestamps are always after the latest created timestamp.
+                (this is not Enron, integrity matters).
+
+            - enabled: true
+              file: /opt/sql/core/job/tables/job.history.sql
+              description: |
+                The job.history table is used to track job executions.  This is not the same use-case as log.events.
+                This table is used to track execution history and execution time for purposes of scheduling future
+                job executions.  For example, given the frequency field in the job.schedule table, we can look at the 
+                history table to find last execution and calculate from that time the elapsed time to determine which
+                jobs need to be queued to jobs.queue.
+
+            - enabled: true
+              file: /opt/sql/core/job/tables/job.runners.sql
+              description: |
+                The job.runners table defines the available automation packages (called "runners") in the system.
+                Each record in this table represents a container with specified inputs and outputs.  Each task 
+                executes a single runner
+
+            - enabled: true
+              file: /opt/sql/core/job/functions/job.idInTasks.sql
+              description: |
+                The job.idInTasks() function will return a boolean answer.  Given a jobId input (integer) the
+                function returns true if the input id is in the job.tasks table.  This is used by a constraint
+                check in the job.queue table.
+
+            - enabled: true
+              file: /opt/sql/core/job/tables/job.tasks.sql
+              description: |
+                The tasks table depends on the job.schedule and job.runners tables to define the tasks for a given job
+                and map the task to a given runner which will be executed under the task context.
+
+            - enabled: true
+              file: /opt/sql/core/job/tables/job.queue.sql
+              description: |
+                The queue table is where we store a list of jobs that are ready for execution.  Once we push a job
+                to the job.queue table, we mark it "in_progress."  If the job execution process fails, the job can
+                be restarted from its current state.
+
+            - enabled: false
+              file: /opt/sql/core/job/functions/queue.push.sql
+              description: |
+                job.push(<jobName>) will insert records into job.queue table.  Given a job name (varchar), this
+                procedure will insert records for each task in the job into job.queue in the order of execution.
+                Execution order is determined by taskId
+
+            - enabled: false
+              file: /opt/sql/core/job/functions/queue.pop.sql
+              description: |
+                job.pop() will return a JSON object describing the row at the current head of the FIFO queue
+                (i.e. the one with the lowest queue id value and a null expiration value), updating expiration
+                to now().
+                
+                Once a row in the queue has an expiration, the record can be purged asynchronously later.
+
+
+    #
+    # raw sources
+    #
+    - name: raw
+      description: |
+        This database is where we can persist the raw collected data.  Each schema is 
+        a separate raw source (e.g. scraped html).
+      enabled: false
+      use_template: base
+      template: false
+      schemas:
+        - name: web_content
+          enabled: false
+          description: |
+            The scraped schema is for collecting scraped content from various websites.
+            This is a source of all content, identified by the URLs.
+          sources:
+            - enabled: true
+              file: /opt/sql/raw/scraped/tables/content_type.sql
+            - enabled: true
+              file: /opt/sql/raw/scraped/tables/content.sql
+        #
+        # Other to-do raw data collections.
+        #
+    #        - name: wifi
+    #        - name: bluetooth
+    #        - name: cellular
+    #        - name: video
+    #        - name: radio
+    #
+    # individuals
+    #
+    - name: individuals
+      description: |
+        Given a number of OSINT sources, this database is the integration point for
+        all persons identified by the data collectors system.
+      enabled: true
+      use_template: base
+      template: false
+      schemas:
+        - name: people
+          enable: true
+          description: |
+            This is the demographic schema which identifies first name, last name 
+            and other identifiers aggregated from various sources into the mosaic
+            view of people.
+          sources:
+            - name: date types
+              description: |
+                The date_types enum provides classification of dates in our
+                dates table.
+              enabled: true
+              file: /opt/sql/individuals/people/types/date_types.sql
+            - name: Genders
+              description: |
+                Identify the genders of people.
+              enabled: true
+              file: /opt/sql/individuals/people/types/genders.sql
+            - name: races
+              description: |
+                Identify individual racial group
+              enabled: true
+              file: /opt/sql/individuals/people/types/races.sql
+            - name: first name
+              description: |
+                first name
+              enabled: true
+              file: /opt/sql/individuals/people/tables/first_name.sql
+            - name: last name
+              description: |
+                first name
+              enabled: true
+              file: /opt/sql/individuals/people/tables/last_name.sql
+            - name: identity
+              description: |
+                The master person identity table which brings all the 
+                facts of a person into a single view.
+              enabled: true
+              file: /opt/sql/individuals/people/tables/identity.sql
+            - name: date table
+              description: |
+                A single table of all dates for an easy timeline.
+              enabled: true
+              file: /opt/sql/individuals/people/tables/date.sql
+            - name: Texas State Identifier Table
+              enabled: true
+              file: /opt/sql/individuals/people/tables/tx_sid.sql
+            - name: notes
+              enabled: true
+              file: /opt/sql/individuals/people/tables/notes.sql
+        - name: tdcj_inmates
+          enabled: true
+          description: |
+            This is the normalized view of records collected from the Texas Department of
+            Criminal Justice Inmate Locator website.
+          sources:
+            - name: TDCJ Facilities
+              description: |
+                The facilities table identifies the various facilities in the Texas Department
+                of Criminal Justice where inmates may be housed according to the Inmate locator
+                service.
+              enabled: true
+              file: /opt/sql/individuals/tdcj_inmates/tables/facilities.sql
+            - name: TDCJ Offense History
+              description: |
+                This table identifies the offense history records of all inmates and 
+                relates each offense to a specific inmate in the TDCJ database.
+              enabled: true
+              file: /opt/sql/individuals/tdcj_inmates/tables/offense_history.sql
+            - name: TDCJ Inmate Age
+              description: |
+                Age-tracking table.  Used to eventually determine
+                date of birth from the table's updates over time.
+              enabled: true
+              file: /opt/sql/individuals/tdcj_inmates/tables/inmate_age.sql
+            - name: TDCJ Release information
+              description: |
+                Release information tracker table for all TDCJ Inmates
+              enabled: true
+              file: /opt/sql/individuals/tdcj_inmates/tables/release_information.sql
+            - name: Inmate current facility tracker
+              description: |
+                Current facility tracker for TDCJ inmates.
+              enabled: true
+              file: /opt/sql/individuals/tdcj_inmates/tables/current_facility.sql
+    #
+    #
+    #
+    - name: financial
+      description: |
+        The financial database is a database for collecting data related to the financial
+        markets.  This OSINT datacollector will persist financial market data overtime for
+        analysis and decision-making eventually.
+      use_template: core
+      template: false
+      enabled: false
+      schemas:
+
+        - name: stock
+          description: |
+            The financial.stock schema is used to collect stock market data.
+          enabled: false
+          sources:
+            - enabled: false
+              file: /opt/sql/financial/stock/0000.schema.sql
+    #
+    #
+    #
+    - name: general
+      description: |
+        The general database is for any datacollector which cannot be easily classified.
+      use_template: core
+      template: false
+      enabled: false
+    #
+    #
+    #
+    - name: intelligence
+      description: |
+        The intelligence database is for surveillance feeds from the physical world,
+        including various SIGINT sources such as WIFI SSIDs, BSSIDs, bluetooth devices,
+        cellular IMSI and TMSI data, and so on.  If it can be discovered, this database
+        should be extensible enough to collect it for analysis.
+      use_template: core
+      template: false
+      enabled: false

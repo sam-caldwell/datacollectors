@@ -1,4 +1,4 @@
-create extension plpgsql_check
+create extension if not exists plpgsql_check
     schema pg_catalog
     version '2.1';
 

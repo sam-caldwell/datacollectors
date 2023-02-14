@@ -1,0 +1,23 @@
+{
+    "gosu": {
+        "arch": "amd64",
+        "digest": "c42abbc5d57ba4c33c89e4daf46c33b0173565fbf533ef7a60281cf3283f611f",
+        "distro": "debian-11",
+        "type": "NAMI",
+        "version": "1.16.0-0"
+    },
+    "redis": {
+        "arch": "amd64",
+        "digest": "53412ccf729c44b0ec18559477977874ac885cdc7a2a0f1cc5fc51db6885061f",
+        "distro": "debian-11",
+        "type": "NAMI",
+        "version": "7.0.7-0"
+    },
+    "wait-for-port": {
+        "arch": "amd64",
+        "digest": "6b1bd6f534ef27b696922dcbdc0e377ac1a7db1e2bc1ff688ae0fa80bbfcb618",
+        "distro": "debian-11",
+        "type": "NAMI",
+        "version": "1.0.5-1"
+    }
+}

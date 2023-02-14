@@ -1,40 +1,53 @@
 #!/usr/bin/env python3
-from psycopg2.extensions import connection
+from db_connect import DatabaseError
+from db_connect import DuplicateSchema
+from db_connect import connection
+from db_connect import db_connect
+from get_args import Namespace
 
-from run_sql import run_sql
-from validate_schema_manifest import validate_schema_manifest
 
-
-def create_schema(conn: connection, db_name: str, manifest: dict) -> None:
+def create_schema(args: Namespace, db_name: str, schema: dict) -> None:
     """
-        create the database schema within the currently connected
-        database.
+        Create or update the db schema
 
-        Note: conn must be the database where the schema will be created.
-
-        :param conn: psycopg2 connection
+        :param args: Namespace
         :param db_name: str
-        :param manifest: dict
+        :param schema: dict
         :return: None
     """
+    schema_name = schema.get("name")
+    print(f"Creating database schemas ({schema_name}) in {db_name}")
 
-    print(f"Creating database schemas in {db_name}")
+    conn: connection = db_connect(db_host=args.db_host,
+                                  db_port=args.db_port,
+                                  db_name=db_name,  # Don't use the one in args.
+                                  db_user=args.db_user,
+                                  db_pass=args.db_pass,
+                                  retries=args.connect_retries,
+                                  retry_interval=args.connect_retry_interval)
+    if conn is None:
+        raise DatabaseError(f"Database connection not possible "
+                            f"after {args.retries} attempts.")
+    try:
+        with conn.cursor() as c:
+            c.execute(f"create schema {schema_name};")
+    except DuplicateSchema as e:
+        update_schema(conn, db_name, schema_name, schema)
+    conn.commit()
+    conn.close()
+    print(f"...done.  Created {db_name}.{schema_name}")
 
-    for schema in manifest:
 
-        validate_schema_manifest(db_name, schema)
+def update_schema(conn: connection, db_name: str, schema_name: str, schema: dict) -> None:
+    """
+        update the existing schema.
 
-        if schema["enabled"]:
+        :param conn:
+        :param db_name:
+        :param schema_name:
+        :param schema:
+        :return:
+    """
+    print("schema exists...updating...")
+    print("No features implemented which support schema update.")
 
-            schema_name = schema["name"]
-
-            with conn.cursor() as c:
-                c.execute(f"create schema if not exists {schema_name};")
-
-            print(f"schema applied: {db_name}.{schema_name}")
-
-            run_sql(conn, schema["sources"], db_name)
-            print("...done")
-        else:
-
-            print(f"skipped: {db_name}.{schema_name}")

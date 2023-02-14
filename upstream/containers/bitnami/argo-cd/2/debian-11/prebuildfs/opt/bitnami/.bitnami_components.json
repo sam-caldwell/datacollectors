@@ -1,0 +1,37 @@
+{
+    "argo-cd": {
+        "arch": "amd64",
+        "digest": "4d0a8460e5b46946cd3aa07650fdb9d1a2924cd84f2a7bf9147ce7267429ac24",
+        "distro": "debian-11",
+        "type": "NAMI",
+        "version": "2.5.6-2"
+    },
+    "gosu": {
+        "arch": "amd64",
+        "digest": "c42abbc5d57ba4c33c89e4daf46c33b0173565fbf533ef7a60281cf3283f611f",
+        "distro": "debian-11",
+        "type": "NAMI",
+        "version": "1.16.0-0"
+    },
+    "helm": {
+        "arch": "amd64",
+        "digest": "9a78af08ddbc31017c52b611ca3b72a163318976275eb0855c83909a632d97dd",
+        "distro": "debian-11",
+        "type": "NAMI",
+        "version": "3.10.3-0"
+    },
+    "ksonnet": {
+        "arch": "amd64",
+        "digest": "f27fccae8c980448c9bd9ccda3053526d911dd34e376a49c2fea3d94b0f78927",
+        "distro": "debian-11",
+        "type": "NAMI",
+        "version": "0.13.1-154"
+    },
+    "kustomize": {
+        "arch": "amd64",
+        "digest": "c7bc01e842c2386f73dd3152cda668658e52152fa3657c37b46896846d179d99",
+        "distro": "debian-11",
+        "type": "NAMI",
+        "version": "4.5.7-3"
+    }
+}
