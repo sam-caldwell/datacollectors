@@ -817,7 +817,7 @@ mysql_ensure_user_exists() {
     local password=""
     local auth_plugin=""
     local use_ldap="no"
-    local hosts
+    local local-vms
     local auth_string=""
     # For accessing an external database
     local db_host=""
@@ -877,7 +877,7 @@ mysql_ensure_user_exists() {
 ${mysql_create_user_cmd} '${user}'@'%' ${auth_string};
 EOF
     debug "Removing all other hosts for the user"
-    hosts=$("${mysql_execute_print_output_cmd[@]}" "mysql" "$DB_ROOT_USER" "$DB_ROOT_PASSWORD" <<EOF
+    local-vms=$("${mysql_execute_print_output_cmd[@]}" "mysql" "$DB_ROOT_USER" "$DB_ROOT_PASSWORD" <<EOF
 select Host from user where User='${user}' and Host!='%';
 EOF
 )
@@ -899,14 +899,14 @@ EOF
 #########################
 mysql_ensure_user_not_exists() {
     local -r user="${1}"
-    local hosts
+    local local-vms
 
     if [[ -z "$user" ]]; then
         debug "removing the unknown user"
     else
         debug "removing user $user"
     fi
-    hosts=$(mysql_execute_print_output "mysql" "$DB_ROOT_USER" "$DB_ROOT_PASSWORD" <<EOF
+    local-vms=$(mysql_execute_print_output "mysql" "$DB_ROOT_USER" "$DB_ROOT_PASSWORD" <<EOF
 select Host from user where User='$user';
 EOF
 )

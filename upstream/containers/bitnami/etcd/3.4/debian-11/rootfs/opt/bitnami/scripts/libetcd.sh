@@ -229,7 +229,7 @@ etcdctl_get_endpoints() {
         local ip="${1:?ip is required}"
         local parent_domain="${1:?parent_domain is required}"
 
-        # 'getent hosts $ip' can return hostnames in 2 different formats:
+        # 'getent dev $ip' can return hostnames in 2 different formats:
         #     POD_NAME.HEADLESS_SVC_DOMAIN.NAMESPACE.svc.cluster.local (using headless service domain)
         #     10-237-136-79.SVC_DOMAIN.NAMESPACE.svc.cluster.local (using POD's IP and service domain)
         # We need to discad the latter to avoid issues when TLS verification is enabled.

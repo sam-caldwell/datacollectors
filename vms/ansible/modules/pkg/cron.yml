@@ -1,0 +1,9 @@
+---
+- name: create Docker config directory
+  file: path=/etc/docker state=directory
+
+- name: install cron
+  apt:
+    name: cron
+    state: present
+    force: yes

@@ -1,0 +1,14 @@
+---
+- name: install Docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: true
+
+- name: changing Docker to systemd driver
+  copy:
+    dest: "/etc/docker/daemon.json"
+    content: |
+      {
+      "exec-opts": ["native.cgroupdriver=systemd"]
+      }

@@ -1,0 +1,38 @@
+---
+- hosts: all
+  become: yes
+  handlers:
+    - name: restart sshd
+      service: name=sshd state=restarted
+  tasks:
+  - include_tasks: modules/ssh.yml
+  - include_tasks: modules/update.yml
+  - include_tasks: modules/pkg/net-tools.yml
+  - include_tasks: modules/hostname.yml
+  - include_tasks: modules/pkg/cron.yml
+  - include_tasks: users/disable_root_user.yml
+  - include_tasks: users/samcaldwell.yml
+
+- hosts: pxe
+  become: yes
+  tasks:
+    - include_tasks: modules/pkg/docker.yml
+
+- hosts: kubernetes_controller, kubernetes_worker
+  become: yes
+  tasks:
+    - include_tasks: modules/disable_swap.yml
+    - include_tasks: modules/pkg/docker.yml
+    - include_tasks: modules/pkg/kubernetes.yml
+
+- hosts: kubernetes_controller
+  become: yes
+  gather_facts: false
+  tasks:
+    - include_tasks: modules/kubernetes/control_plain.yml
+
+- hosts: kubernetes_worker
+  become: yes
+  gather_facts: false
+  tasks:
+    - include_tasks: modules/kubernetes/workers.yml

@@ -1,0 +1,45 @@
+---
+- name: Disable password authentication for root
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify:
+    - restart sshd
+
+- name: Disable password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+  notify:
+    - restart sshd
+
+- name: Ensure public key authentication is enabled.
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?PubkeyAuthentication'
+    line: 'PubkeyAuthentication yes'
+  notify:
+    - restart sshd
+
+- name: Disable tcp forwarding
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?AllowTcpForwarding'
+    line: 'AllowTcpForwarding no'
+  notify:
+    - restart sshd
+
+- name: Disable X11Forwarding
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?X11Forwarding'
+    line: 'X11Forwarding no'
+  notify:
+    - restart sshd

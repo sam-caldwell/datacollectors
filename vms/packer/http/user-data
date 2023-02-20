@@ -1,0 +1,53 @@
+#cloud-config
+autoinstall:
+  version: 1
+  reporting:
+    hook:
+      type: webhook
+      endpoint: http://192.168.3.190:8080/log/
+      level: DEBUG
+  early-commands:
+    #     otherwise packer tries to connect and exceed max attempts:
+    - systemctl stop ssh.service
+    - systemctl stop ssh.socket
+  user-data:
+    users:
+      - default
+      - name: vagrant
+        passwd: vagrant:$y$j9T$Q1lU24lbQD2ZtxTy9A5Uf.$TAWvpgK/8wl3FtYR7UMOnnr48xKZw2So32XDb1djCiB
+        ssh-authorized-keys: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/vlGOpc5AzTtBFrmS3ZHpEQDi8ZxlauOWF1dkhgmohyk9sceV8IdBw0Px+eKz9HvbniNPrKXGschvLKiuXVGF17CAJjwFKTC1tlnjSbKnsgI7VKvsFEl5bDv72qT0ZHZRFoDSrdmiqsCH2PYG4OfqA8IEYD0F41ublRWaCGFleZto7G1ssULhFgOMbgUSNWNL9UaOO6vCNKx+5mkBaClUWpiz84GjXOaGh1rAsWgQf+oOPhAjJrL+eyQWo5isQEItrqvC+cNDgMvE0DkK3JQYccVnDa8IMtO65DGJkU0i6yCRiPKmwkbMLYW9UEwY0dhiPxku7jdchPcxdBhhoOSF
+        shell: /bin/bash
+        lock-passwd: false
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        groups: users, admin
+      - name: samcaldwell
+        passwd: $6$rounds=4096$5CU3LEj/MQvbkfPb$LmKEF9pCfU8R.dA.GemgE/8GT6r9blge3grJvdsVTMFKyLEQwzEF3SGWqAzjawY/XHRpWj4fOiLBrRyxJhIRJ1
+        ssh-authorized-keys: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/vlGOpc5AzTtBFrmS3ZHpEQDi8ZxlauOWF1dkhgmohyk9sceV8IdBw0Px+eKz9HvbniNPrKXGschvLKiuXVGF17CAJjwFKTC1tlnjSbKnsgI7VKvsFEl5bDv72qT0ZHZRFoDSrdmiqsCH2PYG4OfqA8IEYD0F41ublRWaCGFleZto7G1ssULhFgOMbgUSNWNL9UaOO6vCNKx+5mkBaClUWpiz84GjXOaGh1rAsWgQf+oOPhAjJrL+eyQWo5isQEItrqvC+cNDgMvE0DkK3JQYccVnDa8IMtO65DGJkU0i6yCRiPKmwkbMLYW9UEwY0dhiPxku7jdchPcxdBhhoOSF
+        shell: /bin/bash
+        lock-passwd: false
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        groups: users, admin, sudo
+  #    chpasswd:
+  #      expire: false
+  #      list:
+  #        - root:$6$rounds=4096$5CU3LEj/MQvbkfPb$LmKEF9pCfU8R.dA.GemgE/8GT6r9blge3grJvdsVTMFKyLEQwzEF3SGWqAzjawY/XHRpWj4fOiLBrRyxJhIRJ1
+  locale: en_US
+  keyboard:
+    layout: en
+    variant: us
+  refresh-installer:
+    update: no
+    channel: "stable/ubuntu-22.04"
+  source:
+    search_drivers: true
+    id: "ubuntu-server-minimized"
+  ssh:
+    install-server: yes
+    allow-pw: yes
+  updates: all
+  shutdown: reboot
+  late-commands:
+    #    - apt-get install curl net-tools --no-install-recommends -y
+    #    - curl -s --fail http://192.168.3.190:8080/setup.sh | /bin/bash
+    - systemctl start ssh.service
+    - systemctl start ssh.socket

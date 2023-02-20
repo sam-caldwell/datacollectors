@@ -11,7 +11,6 @@ KAFKA_ZOOKEEPER_IMAGE:="datacollectors/kafka/zookeeper:local"
 KAFKA_BROKER_CONTAINER:="datacollectors_kafka_broker"
 KAFKA_ZOOKEEPER_CONTAINER:="datacollectors_kafka_zookeper"
 
-
 #
 # Postgres Database parameters
 #
@@ -33,3 +32,6 @@ CUR_DIR:=$(shell pwd)
 #
 include Makefile.d/db/*.mk
 include Makefile.d/docker/*.mk
+include Makefile.d/packer/*.mk
+include Makefile.d/vagrant/*.mk
+include Makefile.d/*.mk

@@ -1,0 +1,14 @@
+[pxe]
+pxe-server hostname=pxe ansible_host=172.16.10.106 new_ip=172.16.10.254 ansible_user=samcaldwell
+
+[kubernetes_controller]
+control00 hostname=control00.k8s.chestnut.samcaldwell.net ansible_host=172.16.10.100 new_ip=172.16.10.100 ansible_user=samcaldwell
+
+[kubernetes_worker]
+worker01 hostname=worker01.k8s.chestnut.samcaldwell.net ansible_host=172.16.10.111 new_ip=172.16.10.110/24 ansible_user=samcaldwell
+worker02 hostname=worker02.k8s.chestnut.samcaldwell.net ansible_host=172.16.10.112 new_ip=172.16.10.111/24 ansible_user=samcaldwell
+worker03 hostname=worker03.k8s.chestnut.samcaldwell.net ansible_host=172.16.10.113 new_ip=172.16.10.112/24 ansible_user=samcaldwell
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+

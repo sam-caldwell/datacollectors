@@ -165,7 +165,7 @@ web_server_reload() {
 #   $1 - App name
 # Flags:
 #   --type - Application type, which has an effect on which configuration template to use
-#   --hosts - Host listen addresses
+#   --dev - Host listen addresses
 #   --server-name - Server name
 #   --server-aliases - Server aliases
 #   --allow-remote-connections - Whether to allow remote connections or to require local connections
@@ -361,7 +361,7 @@ ensure_web_server_prefix_configuration_exists() {
 # Arguments:
 #   $1 - App name
 # Flags:
-#   --hosts - Host listen addresses
+#   --dev - Host listen addresses
 #   --server-name - Server name
 #   --server-aliases - Server aliases
 #   --enable-http - Enable HTTP app configuration (if not enabled already)

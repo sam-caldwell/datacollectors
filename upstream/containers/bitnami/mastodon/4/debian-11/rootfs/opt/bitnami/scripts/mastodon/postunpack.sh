@@ -25,7 +25,7 @@ done
 # We need to give write permissions to the public folder so we can persist the system and assets folders
 chmod g+rwX "${MASTODON_BASE_DIR}/public"
 
-# HACK: In order to allow accessing from different hosts and to enable/disable HTTPS in
+# HACK: In order to allow accessing from different dev and to enable/disable HTTPS in
 # production mode, we need to change some Rails configuration files
 # https://github.com/mastodon/mastodon/blob/main/config/initializers/1_hosts.rb#L33
 # https://github.com/mastodon/mastodon/blob/main/config/environments/production.rb#L47
@@ -33,7 +33,7 @@ chmod g+rwX "${MASTODON_BASE_DIR}/public"
 # Make HTTPS mode depend on an environment variable and not the RAILS_ENV
 replace_in_file "${MASTODON_BASE_DIR}/config/initializers/1_hosts.rb" "https = Rails.env.production[?]" "https = ENV['MASTODON_HTTPS_ENABLED'] == 'true'"
 
-# Clear authorized hosts array when MASTODON_ALLOW_ALL_DOMAINS is set to true
+# Clear authorized dev array when MASTODON_ALLOW_ALL_DOMAINS is set to true
 replace_in_file "${MASTODON_BASE_DIR}/config/initializers/1_hosts.rb" "config.host_authorization" "config.hosts.clear if ENV['MASTODON_ALLOW_ALL_DOMAINS'] == 'true'\n    config.host_authorization"
 
 # Make HTTPS forced redirect to depend on the MASTODON_HTTPS_ENABLED variable

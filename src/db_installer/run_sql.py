@@ -31,4 +31,4 @@ def run_sql(args: Namespace, db_name: str, sql_file: str) -> None:
     conn.commit()
     conn.close()
     print(f"file successfully executed ({sql_file})")
->>>>>>> revert
+

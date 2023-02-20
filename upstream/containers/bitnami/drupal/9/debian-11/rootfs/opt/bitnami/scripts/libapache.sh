@@ -339,11 +339,11 @@ EOF
 #   $1 - App name
 # Flags:
 #   --type - Application type, which has an effect on what configuration template will be used, allowed values: php, (empty)
-#   --hosts - Host listen addresses
+#   --dev - Host listen addresses
 #   --server-name - Server name
 #   --server-aliases - Server aliases (defaults to '*')
 #   --allow-remote-connections - Whether to allow remote connections or to require local connections
-#   --disable - Whether to render the app's virtual hosts with a .disabled prefix
+#   --disable - Whether to render the app's virtual dev with a .disabled prefix
 #   --disable-http - Whether to render the app's HTTP virtual host with a .disabled prefix
 #   --disable-https - Whether to render the app's HTTPS virtual host with a .disabled prefix
 #   --http-port - HTTP port number
@@ -529,7 +529,7 @@ EOF
 }
 
 ########################
-# Ensure an Apache application configuration does not exist anymore (in virtual hosts format)
+# Ensure an Apache application configuration does not exist anymore (in virtual dev format)
 # Globals:
 #   *
 # Arguments:
@@ -658,7 +658,7 @@ EOF
 # Arguments:
 #   $1 - App name
 # Flags:
-#   --hosts - Host listen addresses
+#   --dev - Host listen addresses
 #   --server-name - Server name
 #   --server-aliases - Server aliases
 #   --enable-http - Enable HTTP app configuration (if not enabled already)

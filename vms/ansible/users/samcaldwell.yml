@@ -1,0 +1,11 @@
+---
+- name: set up authorized keys for the ubuntu user
+  authorized_key: user=samcaldwell key="{{item}}"
+  with_file:
+    - ~/.ssh/id_rsa.pub
+
+- name: allow 'samcaldwell' to have passwordless sudo
+  copy:
+    dest: /etc/sudoers.d/samcaldwell
+    content: |
+      samcaldwell ALL=(ALL) NOPASSWD: ALL

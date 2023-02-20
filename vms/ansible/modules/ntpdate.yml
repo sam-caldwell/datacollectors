@@ -1,0 +1,17 @@
+---
+- name: install ntpdate
+  apt:
+    name: ntpdate
+    state: present
+    force: yes
+
+- name: check for a ntpdate cron job
+  stat:
+    path: /etc/cron.d/ntpdate
+  register: ntpdate_cron_exists
+
+- name: configure ntpdate
+  shell: |
+    /usr/sbin/ntpdate pool.ntp.org
+    echo '30 3 * * 0 root /usr/sbin/ntpdate pool.ntp.org' > /etc/cron.d/ntpdate
+  when: ntpdate_cron_exists.stat.exists == false

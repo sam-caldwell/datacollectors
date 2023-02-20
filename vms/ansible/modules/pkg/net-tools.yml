@@ -1,0 +1,6 @@
+---
+- name: install network tools (net-tools)
+  apt:
+    name: net-tools
+    state: present
+    force: yes

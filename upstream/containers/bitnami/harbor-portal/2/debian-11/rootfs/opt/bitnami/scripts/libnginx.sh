@@ -211,7 +211,7 @@ nginx_initialize() {
 #   $1 - App name
 # Flags:
 #   --type - Application type, which has an effect on what configuration template will be used, allowed values: php, (empty)
-#   --hosts - Host listen addresses
+#   --dev - Host listen addresses
 #   --server-name - Server name (if not specified, a catch-all server block will be created)
 #   --server-aliases - Server aliases
 #   --allow-remote-connections - Whether to allow remote connections or to require local connections
@@ -469,7 +469,7 @@ absolute_redirect off;"
 # Arguments:
 #   $1 - App name
 # Flags:
-#   --hosts - Hosts to enable
+#   --dev - Hosts to enable
 #   --enable-http - Enable HTTP app configuration (if not enabled already)
 #   --enable-https - Enable HTTPS app configuration (if not enabled already)
 #   --disable-http - Disable HTTP app configuration (if not disabled already)
